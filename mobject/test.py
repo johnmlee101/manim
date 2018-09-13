@@ -17,6 +17,14 @@ SEED = 386735
 np.random.seed(SEED)
 
 
+def get_random_mobject(num_points=10, depth=False):
+    m = Mobject()
+    m.points = np.random.rand(num_points, 3)
+    if not depth:
+        m.points[:, 2] = 0
+    return m
+
+
 def test_init():
     m = Mobject()
 
@@ -880,9 +888,59 @@ def test_move_to(mocker):
     )
 
 
-# def replace():
-# def surround():
-# def position_endpoints_on():
+def test_replace():
+    m1_points = np.random.rand(10, 3)
+    m1 = Mobject()
+    m1.points = m1_points.copy()
+    m2_points = np.random.rand(10, 3)
+    m2 = Mobject()
+    m2.points = m2_points.copy()
+
+    def get_ratio(mob):
+        return mob.length_over_dim(0) / mob.length_over_dim(1)
+
+    m1_orig_ratio = get_ratio(m1)
+    assert m1.length_over_dim(0) != m2.length_over_dim(0)
+    assert(not np.allclose(m1.get_center(), m2.get_center()))
+    m1.replace(m2)
+    assert get_ratio(m1) == approx(m1_orig_ratio)
+    assert m1.length_over_dim(0) == m2.length_over_dim(0)
+    assert np.allclose(m1.get_center(), m2.get_center())
+
+    m1.points = m1_points.copy()
+    m1.replace(m2, stretch=True)
+    assert get_ratio(m1) != approx(m1_orig_ratio)
+    assert m1.length_over_dim(0) == m2.length_over_dim(0)
+    assert np.allclose(m1.get_center(), m2.get_center())
+
+
+def test_surround(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'replace')
+    mocker.patch.object(mobject.mobject.Mobject, 'scale_in_place')
+    m1 = Mobject()
+    m2 = Mobject()
+
+    m1.surround(m2)
+    m1.replace.assert_called_once_with(m2, 0, False)
+    m1.scale_in_place.assert_called_once_with(1.2)
+
+
+def test_position_endpoints_on(mocker):
+    mocker.spy(mobject.mobject.Mobject, 'scale')
+    mocker.spy(mobject.mobject.Mobject, 'rotate')
+    mocker.spy(mobject.mobject.Mobject, 'shift')
+    m = get_random_mobject()
+    mock_start = np.append(np.random.rand(2), 0)
+    mock_end = np.append(np.random.rand(2), 0)
+
+    m.position_endpoints_on(mock_start, mock_end)
+    assert np.allclose(m.points[0], mock_start)
+    assert np.allclose(m.points[-1], mock_end)
+    m.scale.assert_called_once()
+    m.rotate.assert_called_once()
+    m.shift.assert_called_once()
+
+
 # def add_background_rectangle():
 # def add_background_rectangle_to_submobjects():
 # def add_background_rectangle_to_family_members_with_points():

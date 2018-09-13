@@ -517,6 +517,9 @@ class Mobject(Container):
         self.scale_in_place(buffer_factor)
 
     def position_endpoints_on(self, start, end):
+        if any(self.points[:, 2]):
+            raise RuntimeError("Mobject.position_endpoints_on() does not work "
+                               "with Mobjects that have depth")
         curr_vect = self.points[-1] - self.points[0]
         if np.all(curr_vect == 0):
             raise Exception("Cannot position endpoints of closed loop")
