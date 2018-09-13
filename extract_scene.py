@@ -298,15 +298,20 @@ def main():
         scene_kwargs["save_pngs"] = True
         scene_kwargs["pngs_mode"] = config["saved_image_mode"]
 
+    exit_codes = []
     for SceneClass in get_scene_classes(scene_names_to_classes, config):
         try:
             handle_scene(SceneClass(**scene_kwargs), **config)
-            play_finish_sound()
+            exit_codes.append(play_finish_sound())
         except:
             print("\n\n")
             traceback.print_exc()
             print("\n\n")
-            play_error_sound()
+            exit_codes.append(play_error_sound())
+    if any(exit_codes):
+        sys.exit(1)
+    else:
+        sys.exit(0)
 
 
 if __name__ == "__main__":
