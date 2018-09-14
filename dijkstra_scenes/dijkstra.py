@@ -9,7 +9,7 @@ from animation.movement import MoveAlongPath
 from animation.specialized import TransformEquation
 from animation.transform import ApplyMethod
 from animation.transform import MoveToTarget
-from animation.transform import ReplacementTransform
+from animation.transform import ReplacementTransform, Transform
 from animation.update import UpdateFromAlphaFunc
 from collections import OrderedDict
 from dijkstra_scenes.edge import Side
@@ -31,7 +31,7 @@ from mobject.types.vectorized_mobject import VGroup
 from mobject.types.vectorized_mobject import VMobject
 from scene.moving_camera_scene import MovingCameraScene
 from utils.bezier import interpolate
-from utils.rate_functions import there_and_back_with_pause
+from utils.rate_functions import there_and_back_with_pause, there_and_back
 from utils.rate_functions import wiggle
 from utils.save import save_state, load_previous_state
 from utils.space_ops import rotate_vector
@@ -577,7 +577,18 @@ class RunAlgorithm(MovingCameraScene):
             Write(VMobject(words[1], words[2])),
         )
 
-        self.play(Write(VMobject(words[3], words[4])))
+        clone = S.get_edge((u, v)).deepcopy()
+        orig = S.get_edge((u, v)).deepcopy()
+        clone.update_attrs({"stroke_width": 6}, animate=False)
+
+        self.play(
+            Write(VMobject(words[3], words[4])),
+            Transform(
+                S.get_edge((u, v)),
+                clone,
+            ),
+        )
+        self.play(Transform(S.get_edge((u, v)), orig, run_time=0.8))
         self.wait()
 
         sx = Line(
@@ -668,14 +679,45 @@ class RunAlgorithm(MovingCameraScene):
         ])
         updates[(u, v)] = OrderedDict([
             ("weight", Integer(y_len)),
+            ("label_side", Side.COUNTERCLOCKWISE),
         ])
-        self.play(*S.update_components(updates) + [FadeOut(arrow1)])
+        start, end = arrow2.get_start_and_end()
+        vec = end - start
+        midpoint = start + vec / 2
+        vec = vec / np.linalg.norm(vec)
+        vec = rotate_vector(vec, np.pi / 2)
+        vec *= const.MED_SMALL_BUFF
+        path_length = Integer(x_len).move_to(midpoint + vec)
+        self.play(
+            *S.update_components(updates) +
+            [FadeOut(arrow1), FadeIn(path_length)]
+        )
 
         self.play(TransformEquation(eq1, eq2, "z \\\\le (.*) \\+ (.*)"))
         self.play(TransformEquation(eq2, eq3, "z \\\\le (.*)"))
 
         relax_neighbors(self, S, u)
 
+        self.wait(2)
+
+        G = Group(S, arrow2, path_length)
+        self.play(
+            ApplyMethod(G.shift, const.RIGHT * 3.5),
+            FadeOut(eq3),
+        )
+
+        relax_def = TextMobject(
+            "The process of using the triangle inequality ",
+            "to bound the shortest path length of an edge ",
+            "is called \\textbf{\\textit{relaxing}} that edge",
+            hsize="2in",
+        )
+        relax_def.to_edge(
+            const.LEFT,
+            initial_offset=self.camera_frame.get_center(),
+        )
+        self.wait(2)
+        self.play(Write(relax_def))
         self.wait(2)
 
         self.play(
@@ -1810,19 +1852,19 @@ class RunAlgorithm(MovingCameraScene):
         save_state(self)
 
     def construct(self):
-        self.first_try()
-        self.counterexample()
-        self.one_step()
+        # self.first_try()
+        # self.counterexample()
+        # self.one_step()
         self.triangle_inequality()
-        self.generalize()
-        self.tightening()
-        self.first_run()
-        # self.infinite_bounds() # patched
-        # self.parent_pointers() # patched
-        self.last_run()
-        self.directed_graph()
-        self.spt_vs_mst()
-        self.show_code()
-        self.run_code()
-        self.analyze()
-        self.compare_data_structures()
+        # self.generalize()
+        # self.tightening()
+        # self.first_run()
+        # # self.infinite_bounds() # patched
+        # # self.parent_pointers() # patched
+        # self.last_run()
+        # self.directed_graph()
+        # self.spt_vs_mst()
+        # self.show_code()
+        # self.run_code()
+        # self.analyze()
+        # self.compare_data_structures()

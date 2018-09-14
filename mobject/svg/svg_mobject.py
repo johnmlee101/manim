@@ -119,8 +119,8 @@ class SVGMobject(VMobject):
         self.handle_transforms(g_element, mob)
         return mob.submobjects
 
-    def path_string_to_mobject(self, path_string):
-        return VMobjectFromSVGPathstring(path_string)
+    def path_string_to_mobject(self, path_string, fill_color=None):
+        return VMobjectFromSVGPathstring(path_string, fill_color=fill_color)
 
     def use_to_mobjects(self, use_element, fill_color=None):
         # Remove initial "#" character
