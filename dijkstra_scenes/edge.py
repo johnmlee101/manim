@@ -168,12 +168,14 @@ class Edge(Component):
             else:
                 dic["curved"] = False
 
+        # where along the edge the label is placed
         if "label_location" not in dic:
             if hasattr(self, "mobject") and self.mobject.label_location:
                 dic["label_location"] = self.mobject.label_location
             else:
                 dic["label_location"] = 0.5
 
+        # which side of the edge on which the label is placed
         if "label_side" not in dic:
             if hasattr(self, "mobject") and self.mobject.label_side:
                 dic["label_side"] = self.mobject.label_side

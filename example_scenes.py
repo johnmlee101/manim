@@ -53,8 +53,9 @@ class SquareToCircle(Scene):
 
 
 class SVGTest(Scene):
-    mail = SVGMobject(file_name="/home/devneal/Downloads/mail.svg")
-    self.play(ShowCreation(mail))
+    def construct(self):
+        mail = SVGMobject(file_name="/home/devneal/Downloads/mail.svg")
+        self.play(ShowCreation(mail))
 
 
 class WarpSquare(Scene):
