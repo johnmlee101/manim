@@ -1160,7 +1160,15 @@ class RunAlgorithm(MovingCameraScene):
     def spt_vs_mst(self):
         self.__dict__.update(load_previous_state())
         DIST = 2.5
+        """
+        Minimum Spanning Tree:
+        A tree with minimum weight among all trees which connect
+        all nodes in the graph
 
+        Shortest Path Tree:
+        A tree rooted at a node s such that all paths from s to another node in
+        the tree are shortest paths in the full graph
+        """
         nodes = [
             (0, 0, 0),
             (DIST, DIST, 0),
@@ -1855,16 +1863,16 @@ class RunAlgorithm(MovingCameraScene):
         # self.first_try()
         # self.counterexample()
         # self.one_step()
-        self.triangle_inequality()
+        # self.triangle_inequality()
         # self.generalize()
         # self.tightening()
         # self.first_run()
-        # # self.infinite_bounds() # patched
-        # # self.parent_pointers() # patched
+        # self.infinite_bounds()
+        # self.parent_pointers()
         # self.last_run()
         # self.directed_graph()
         # self.spt_vs_mst()
-        # self.show_code()
+        self.show_code()
         # self.run_code()
         # self.analyze()
         # self.compare_data_structures()
