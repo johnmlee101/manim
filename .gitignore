@@ -20,14 +20,14 @@ primes.py
 
 *.mnm
 *.sw*
-env/
 media/
 notes.txt
 log.txt
 tags
-/media_dir.txt
+media_dir.txt
 .coverage
 .pytest_cache/
-/htmlcov
+htmlcov
 manimenv/
 core
+.cache
