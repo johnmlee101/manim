@@ -1346,14 +1346,17 @@ class RunAlgorithm(MovingCameraScene):
         """).set_width(0.5 * const.FRAME_WIDTH - 2 * const.MED_SMALL_BUFF) \
             .to_corner(const.UL, buff=const.MED_SMALL_BUFF)
 
-        dijkstra_code = code.submobjects[0].copy()
-        dijkstra_code.scale(
+        first_line = code[0][0].copy()
+        first_line.scale(
             (const.FRAME_WIDTH - 2 * const.MED_SMALL_BUFF) /
-            dijkstra_code.get_width()) \
-            .shift(self.camera_frame.get_center() - dijkstra_code.get_center())
-        self.play(ShowCreation(dijkstra_code))
+            first_line.get_width()) \
+            .shift(self.camera_frame.get_center() - first_line.get_center())
+        self.play(ShowCreation(first_line))
 
-        self.play(ReplacementTransform(dijkstra_code, code.submobjects[0]))
+        self.play(ReplacementTransform(first_line, code[0][0]))
+
+        # initialize_source(s)
+        self.play(ShowCreation(code[0][1]))
 
         s = (0, 0, 0)
         nodes = [
@@ -1373,8 +1376,10 @@ class RunAlgorithm(MovingCameraScene):
             s: OrderedDict([("variable", TexMobject("s"))]),
         }
         G = Graph(
-            nodes, edges,
-            attrs=attrs).shift(const.RIGHT * 0.25 * const.FRAME_WIDTH)
+            nodes,
+            edges,
+            attrs=attrs,
+        ).shift(const.RIGHT * 0.25 * const.FRAME_WIDTH)
 
         updates = OrderedDict()
         for node in nodes:
@@ -1389,8 +1394,8 @@ class RunAlgorithm(MovingCameraScene):
                 ])
 
         # shift initialize header down and create next block
-        top_line = code.submobjects[0].submobjects[1]
-        bottom_line = code.submobjects[1].submobjects[0]
+        top_line = code[0][1]
+        bottom_line = code[1][0]
         top_initialize_line = top_line.copy()
         bottom_initialize_line = SingleStringTexMobject(
             bottom_line.tex_string[4:-1])
@@ -1402,13 +1407,33 @@ class RunAlgorithm(MovingCameraScene):
             ReplacementTransform(top_initialize_line, bottom_initialize_line))
         self.play(
             FadeIn(bottom_initialize_line_ends),
-            ShowCreation(Group(*code.submobjects[1].submobjects[1:])),
+            ShowCreation(Group(*code[1][1:])),
         )
 
-        # show the graph
+        # initialize_source(s) animation
         self.play(FadeIn(G))
         self.play(*G.update_components(updates))
         self.play(FadeOut(G))
+
+        # bounded_vertices = min_queue(G.vertices)
+        self.play(ShowCreation(code[0][2]))
+        self.wait(1)
+
+        # while bounded_vertices:
+        self.play(ShowCreation(code[0][3][0]))
+        self.wait(1)
+
+        #     u = bounded_vertices.extract_min()
+        self.play(ShowCreation(code[0][3][1]))
+        self.wait(1)
+
+        #     for v in G.neighbors(u):
+        self.play(ShowCreation(code[0][3][2][0]))
+        self.wait(1)
+
+        #         relax_edge(G, u, v)
+        self.play(ShowCreation(code[0][3][2][1]))
+        self.wait(1)
 
         # shift relax header down and create next block
         top_line = code.submobjects[0] \
