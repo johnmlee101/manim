@@ -1,4 +1,3 @@
-
 import os
 import hashlib
 
@@ -17,7 +16,11 @@ def tex_hash(expression, template_tex_file):
 def tex_to_svg_file(expression, template_tex_file, **kwargs):
     tex_file = generate_tex_file(expression, template_tex_file, **kwargs)
     dvi_file = tex_to_dvi(tex_file)
-    return dvi_to_svg(dvi_file)
+    if os.path.basename(template_tex_file) == "code_template.tex":
+        remove_rectangles = True
+    else:
+        remove_rectangles = False
+    return dvi_to_svg(dvi_file, remove_rectangles=remove_rectangles)
 
 
 def generate_tex_file(expression, template_tex_file, **kwargs):
@@ -70,7 +73,7 @@ def tex_to_dvi(tex_file):
     return result
 
 
-def dvi_to_svg(dvi_file, regen_if_exists=False):
+def dvi_to_svg(dvi_file, regen_if_exists=False, remove_rectangles=False):
     """
     Converts a dvi, which potentially has multiple slides, into a
     directory full of enumerated pngs corresponding with these slides.
@@ -91,4 +94,13 @@ def dvi_to_svg(dvi_file, regen_if_exists=False):
             get_null()
         ]
         os.system(" ".join(commands))
+    if remove_rectangles:
+        with open(result, "r+") as f:
+            lines = f.readlines()
+            f.seek(0)
+            for line in lines:
+                if "rect" not in line:
+                    f.write(line)
+            f.truncate()
+            f.close()
     return result
