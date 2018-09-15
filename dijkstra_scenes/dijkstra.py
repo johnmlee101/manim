@@ -1166,9 +1166,27 @@ class RunAlgorithm(MovingCameraScene):
         all nodes in the graph
 
         Shortest Path Tree:
-        A tree rooted at a node s such that all paths from s to another node in
-        the tree are shortest paths in the full graph
+        A tree rooted at a node s such that all paths in the tree from s to
+        another node are shortest paths in the full graph
         """
+        spt_def = TextMobject(
+            "\\textbf{Shortest Path Tree} \\\\",
+            "A tree rooted at a node s such that all paths in the tree from s "
+            "to another node are shortest paths in the full graph",
+            hsize="1.75in",
+        ).to_edge(const.RIGHT).shift(0.5 * const.UP)
+        mst_def = TextMobject(
+            "\\textbf{Minimum Spanning Tree} \\\\",
+            "A tree with minimum weight among all trees that connect "
+            "all nodes in the graph",
+            hsize="1.75in",
+        ).to_edge(const.LEFT).align_to(spt_def, const.UP)
+
+        self.play(Write(mst_def))
+        self.play(Write(spt_def))
+
+        self.wait(2)
+
         nodes = [
             (0, 0, 0),
             (DIST, DIST, 0),
@@ -1185,14 +1203,21 @@ class RunAlgorithm(MovingCameraScene):
             edges[1]: OrderedDict([("weight", Integer(2))]),
             edges[2]: OrderedDict([("weight", Integer(1))]),
         }
-        H_spt = Graph(nodes, edges, attrs=attrs).shift(const.DOWN)
-        H_spt.generate_target().shift(3 * const.LEFT)
+        H_spt = Graph(nodes, edges, attrs=attrs).shift(1.5 * const.DOWN)
+        H_spt.generate_target().shift(3.5 * const.RIGHT)
         H_mst = H_spt.deepcopy()
-        H_mst.generate_target().shift(3 * const.RIGHT)
+        H_mst.generate_target().shift(3.5 * const.LEFT)
 
         # split graphs
+        self.play(
+            FadeOut(spt_def[1]),
+            FadeOut(mst_def[1]),
+        )
         self.play(ShowCreation(H_spt))
-        self.play(MoveToTarget(H_spt), MoveToTarget(H_mst))
+        self.play(
+            MoveToTarget(H_spt),
+            MoveToTarget(H_mst),
+        )
 
         # show spt
         spt_updates = OrderedDict()
@@ -1207,9 +1232,7 @@ class RunAlgorithm(MovingCameraScene):
             ("color", SPT_COLOR),
             ("stroke_width", 4),
         ])
-        spt_text = TextMobject(
-            "Shortest Path Tree", hsize="85pt").next_to(H_spt, const.DOWN)
-        self.play(*H_spt.update_components(spt_updates) + [Write(spt_text)])
+        self.play(*H_spt.update_components(spt_updates))
 
         # show mst
         mst_updates = OrderedDict()
@@ -1224,9 +1247,7 @@ class RunAlgorithm(MovingCameraScene):
             ("color", SPT_COLOR),
             ("stroke_width", 4),
         ])
-        mst_text = TextMobject(
-            "Minimum Spanning Tree", hsize="85pt").next_to(H_mst, const.DOWN)
-        self.play(*H_mst.update_components(mst_updates) + [Write(mst_text)])
+        self.play(*H_mst.update_components(mst_updates))
         self.wait()
 
         # restore spt + mst
@@ -1257,13 +1278,15 @@ class RunAlgorithm(MovingCameraScene):
         ])
 
         self.play(
-            FadeOut(mst_text), FadeOut(spt_text),
             *H_spt.update_components(spt_updates) +
-            H_mst.update_components(mst_updates))
+            H_mst.update_components(mst_updates),
+        )
 
-        H_spt.generate_target().shift(3 * const.RIGHT)
-        H_mst.generate_target().shift(3 * const.LEFT)
+        H_spt.generate_target().shift(3.5 * const.LEFT)
+        H_mst.generate_target().shift(3.5 * const.RIGHT)
         self.play(
+            FadeOut(spt_def[0]),
+            FadeOut(mst_def[0]),
             MoveToTarget(H_spt),
             MoveToTarget(H_mst),
         )
