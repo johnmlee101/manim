@@ -17,7 +17,7 @@ from dijkstra_scenes.graph import Graph
 from dijkstra_scenes.graph import Node
 from mobject.functions import ParametricFunction
 from mobject.geometry import Arrow
-from mobject.geometry import Line, Dot
+from mobject.geometry import Line
 from mobject.mobject import Group
 from mobject.mobject import interpolate_color
 from mobject.numbers import Integer
@@ -31,7 +31,7 @@ from mobject.types.vectorized_mobject import VGroup
 from mobject.types.vectorized_mobject import VMobject
 from scene.moving_camera_scene import MovingCameraScene
 from utils.bezier import interpolate
-from utils.rate_functions import there_and_back_with_pause, there_and_back
+from utils.rate_functions import there_and_back_with_pause
 from utils.rate_functions import wiggle
 from utils.save import save_state, load_previous_state
 from utils.space_ops import rotate_vector
@@ -39,14 +39,14 @@ import constants as const
 import numpy as np
 import random
 import sys
-INFTY_COLOR = const.BLACK
-DEFAULT_WIDTH = 2
-SPT_WIDTH = 6
 SPT_COLOR = const.VIOLET
 QUEUE_COLOR = const.MAGENTA
 RELAXATION_COLOR = const.ORANGE
-LINE_HEIGHT = 0.3
+INFTY_COLOR = const.BLACK
 CURSOR_COLOR = const.BLUE
+DEFAULT_WIDTH = 2
+SPT_WIDTH = 6
+LINE_HEIGHT = 0.3
 
 
 def place_arrows(block, group=None):
@@ -306,18 +306,24 @@ def extract_node(scene, G, arrows=False, code=None, cursor=None):
 
 class RunAlgorithm(MovingCameraScene):
     def first_try(self):
-        # Draw borders
-        self.add(
-            Line(const.TOP + const.LEFT_SIDE, const.TOP + const.RIGHT_SIDE))
-        self.add(
-            Line(const.BOTTOM + const.LEFT_SIDE,
-                 const.BOTTOM + const.RIGHT_SIDE))
-        self.add(
-            Line(const.LEFT_SIDE + const.BOTTOM, const.LEFT_SIDE + const.TOP))
-        self.add(
-            Line(const.RIGHT_SIDE + const.BOTTOM,
-                 const.RIGHT_SIDE + const.TOP))
-        self.add(Dot(const.ORIGIN))
+        # # Draw borders
+        # self.add(Line(
+        #     const.TOP + const.LEFT_SIDE,
+        #     const.TOP + const.RIGHT_SIDE,
+        # ))
+        # self.add(Line(
+        #     const.BOTTOM + const.LEFT_SIDE,
+        #     const.BOTTOM + const.RIGHT_SIDE,
+        # ))
+        # self.add(Line(
+        #     const.LEFT_SIDE + const.BOTTOM,
+        #     const.LEFT_SIDE + const.TOP,
+        # ))
+        # self.add(Line(
+        #     const.RIGHT_SIDE + const.BOTTOM,
+        #     const.RIGHT_SIDE + const.TOP,
+        # ))
+        # self.add(Dot(const.ORIGIN))
 
         # draw the graph
         X_DIST = 4.3
@@ -447,9 +453,14 @@ class RunAlgorithm(MovingCameraScene):
         # this is antipattern; possibly allow returning a copy edge?
         self.play(
             Indicate(
-                H.edges[edges[0]].get_label("weight"),
+                H.edges[edges[1]].get_label("weight"),
                 rate_func=there_and_back_with_pause,
-                run_time=2))
+                run_time=2),
+            Indicate(
+                H.edges[edges[2]].get_label("weight"),
+                rate_func=there_and_back_with_pause,
+                run_time=2),
+        )
 
         # switch to upper bound
         relax_neighbors(self, H, nodes[0], show_relaxation=False)
@@ -474,10 +485,20 @@ class RunAlgorithm(MovingCameraScene):
         adj_edges = G.get_adjacent_edges(s)
         relax_neighbors(self, G, s, show_relaxation=False)
 
-        # highlight other edge weights
+        # tighten closest node
         adj_edges = G.get_adjacent_edges(s)
         min_edge = min(
             adj_edges, key=lambda x: G.get_edge(x).get_label("weight").number)
+        min_node = G.get_edge(min_edge).opposite(s)
+        min_bound = int(G.get_node_label(min_node, "dist").tex_string[4:])
+        self.play(*G.update_component(
+            min_node, OrderedDict([
+                ("dist", Integer(min_bound)),
+                ("color", SPT_COLOR),
+            ])
+        ))
+
+        # highlight other edge weights
         anims = []
         for edge in adj_edges:
             if edge != min_edge:
@@ -489,16 +510,6 @@ class RunAlgorithm(MovingCameraScene):
                     )
                 ])
         self.play(*anims)
-
-        # tighten closest node
-        min_node = G.get_edge(min_edge).opposite(s)
-        min_bound = int(G.get_node_label(min_node, "dist").tex_string[4:])
-        self.play(*G.update_component(
-            min_node, OrderedDict([
-                ("dist", Integer(min_bound)),
-                ("color", SPT_COLOR),
-            ])
-        ))
 
         # revert graph
         updates = OrderedDict()
@@ -708,7 +719,7 @@ class RunAlgorithm(MovingCameraScene):
 
         relax_def = TextMobject(
             "The process of using the triangle inequality ",
-            "to bound the shortest path length of an edge ",
+            "to bound the shortest path length across an edge ",
             "is called \\textbf{\\textit{relaxing}} that edge",
             hsize="2in",
         )
@@ -802,7 +813,7 @@ class RunAlgorithm(MovingCameraScene):
 
     def tightening(self):
         self.__dict__.update(load_previous_state())
-        H_DIST = 3
+        H_DIST = 2.8
         V_DIST = 1.5
 
         nodes = [
@@ -891,9 +902,11 @@ class RunAlgorithm(MovingCameraScene):
         self.wait(1)
 
         known_nodes = Group(*[G.get_node(point) for point in nodes[:4]])
-        known_text = TextMobject("Known").next_to(known_nodes, const.UP)
+        known_text = TextMobject("Known").next_to(known_nodes, const.UP) \
+                                         .set_color(SPT_COLOR)
         unknown_nodes = Group(*[G.get_node(point) for point in nodes[4:]])
-        unknown_text = TextMobject("Unknown").next_to(unknown_nodes, const.UP)
+        unknown_text = TextMobject("Unknown").next_to(
+            unknown_nodes, const.UP).set_color(QUEUE_COLOR)
 
         unknown_nodes.save_state()
         unknown_nodes.generate_target()
@@ -945,6 +958,31 @@ class RunAlgorithm(MovingCameraScene):
                 ("dist", Integer(6)),
                 ("color", SPT_COLOR),
             ])))
+
+        # do it
+        G_with_labels = Group(G, known_text, unknown_text)
+        G_with_labels.generate_target().to_edge(
+            const.RIGHT,
+            initial_offset=self.camera_frame.get_center(),
+        )
+        self.play(MoveToTarget(G_with_labels))
+
+        text = TextMobject(
+            "If every node in the ",
+            "\\textbf{known} ",
+            "set has had it's ",
+            "edges relaxed, the least bound in the ",
+            "\\textbf{unknown} ",
+            "set ",
+            "is tight.",
+            hsize="1.55in",
+        ).to_edge(
+            const.LEFT,
+            initial_offset=self.camera_frame.get_center(),
+        )
+        text[1].set_color(SPT_COLOR)
+        text[4].set_color(QUEUE_COLOR)
+        self.play(Write(text))
 
         self.wait(2)
 
@@ -1171,8 +1209,8 @@ class RunAlgorithm(MovingCameraScene):
         """
         spt_def = TextMobject(
             "\\textbf{Shortest Path Tree} \\\\",
-            "A tree rooted at a node s such that all paths in the tree from s "
-            "to another node are shortest paths in the full graph",
+            "A tree rooted at a node $s$ such that all paths in the tree from "
+            "$s$ to another node are shortest paths in the full graph",
             hsize="1.75in",
         ).to_edge(const.RIGHT).shift(0.5 * const.UP)
         mst_def = TextMobject(
@@ -1232,7 +1270,6 @@ class RunAlgorithm(MovingCameraScene):
             ("color", SPT_COLOR),
             ("stroke_width", 4),
         ])
-        self.play(*H_spt.update_components(spt_updates))
 
         # show mst
         mst_updates = OrderedDict()
@@ -1247,7 +1284,7 @@ class RunAlgorithm(MovingCameraScene):
             ("color", SPT_COLOR),
             ("stroke_width", 4),
         ])
-        self.play(*H_mst.update_components(mst_updates))
+        self.play(*H_mst.update_components(mst_updates) + H_spt.update_components(spt_updates))
         self.wait()
 
         # restore spt + mst
@@ -1908,19 +1945,19 @@ class RunAlgorithm(MovingCameraScene):
         save_state(self)
 
     def construct(self):
-        # self.first_try()
-        # self.counterexample()
-        # self.one_step()
-        # self.triangle_inequality()
-        # self.generalize()
-        # self.tightening()
-        # self.first_run()
-        # self.infinite_bounds()
-        # self.parent_pointers()
-        # self.last_run()
-        # self.directed_graph()
-        # self.spt_vs_mst()
+        self.first_try()
+        self.counterexample()
+        self.one_step()
+        self.triangle_inequality()
+        self.generalize()
+        self.tightening()
+        self.first_run()
+        self.infinite_bounds()
+        self.parent_pointers()
+        self.last_run()
+        self.directed_graph()
+        self.spt_vs_mst()
         self.show_code()
-        # self.run_code()
-        # self.analyze()
-        # self.compare_data_structures()
+        self.run_code()
+        self.analyze()
+        self.compare_data_structures()
