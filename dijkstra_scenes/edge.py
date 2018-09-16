@@ -29,9 +29,9 @@ class Edge(Component):
 
     def __str__(self):
         return "Edge(start=({}, {}), end=({}, {}))".format(
-            *numpy.append(
-                self.start_node.mobject.get_center()[:2],
-                self.end_node.mobject.get_center()[:2]))
+            *numpy.append(self.start_node.mobject.get_center()[:2],
+                          self.end_node.mobject.get_center()[:2]))
+
     __repr__ = __str__
 
     @staticmethod
@@ -84,11 +84,13 @@ class Edge(Component):
             if name in new_labels:
                 # move the new label into place
                 if last_mobject:
-                    new_labels[name].next_to(last_mobject,
-                                             const.RIGHT, buff=buff)
+                    new_labels[name].next_to(
+                        last_mobject, const.RIGHT, buff=buff)
                 else:
                     new_labels[name].next_to(
-                        interpolate(start, end, label_location), vec, buff=buff)
+                        interpolate(start, end, label_location),
+                        vec,
+                        buff=buff)
             else:
                 # move the old label into place
                 if last_mobject:
@@ -96,7 +98,9 @@ class Edge(Component):
                         last_mobject, const.RIGHT, buff=buff)
                 else:
                     old_label_copies[name] = label.copy().next_to(
-                        interpolate(start, end, label_location), vec, buff=buff)
+                        interpolate(start, end, label_location),
+                        vec,
+                        buff=buff)
             last_mobject = label
 
         # move newly added labels into place
@@ -107,7 +111,10 @@ class Edge(Component):
                 if last_mobject:
                     label.next_to(last_mobject, const.RIGHT, buff=buff)
                 else:
-                    label.next_to(interpolate(start, end, label_location), vec, buff=buff)
+                    label.next_to(
+                        interpolate(start, end, label_location),
+                        vec,
+                        buff=buff)
                 last_mobject = label
         ordered_labels = OrderedDict()
         for key in self.labels:
@@ -194,16 +201,13 @@ class Edge(Component):
                 self.end_node.mobject.get_center() -
                 normalized_vec * (self.end_node.mobject.radius - 0.0),
                 buff=0,
-                **dic
-            )
+                **dic)
         else:
             mob = Line(
                 self.start_node.mobject.get_center() +
                 normalized_vec * self.start_node.mobject.radius,
                 self.end_node.mobject.get_center() -
-                normalized_vec * self.end_node.mobject.radius,
-                **dic
-            )
+                normalized_vec * self.end_node.mobject.radius, **dic)
 
         if dic["curved"]:
             start, end = mob.get_start_and_end()
@@ -213,6 +217,7 @@ class Edge(Component):
                 return x - 0.1 * normal_vec * \
                     (numpy.linalg.norm(start - midpoint) -
                      numpy.linalg.norm(x - midpoint))
+
             mob.shift(-0.05 * normal_vec).apply_function(f)
         new_mob = mob
 
@@ -223,8 +228,8 @@ class Edge(Component):
                     FadeIn(new_mob, parent=self),
                 ])
             else:
-                ret.extend([ReplacementTransform(
-                    self.mobject, new_mob, parent=self)])
+                ret.extend(
+                    [ReplacementTransform(self.mobject, new_mob, parent=self)])
         else:
             if hasattr(self, "mobject"):
                 self.remove(self.mobject)
@@ -238,10 +243,11 @@ class Edge(Component):
                 labels["weight"] = dic["weight"]
         if not hasattr(self, "labels"):
             self.labels = OrderedDict()
-        ret.extend(self.set_labels(
-            labels,
-            animate=animate,
-            label_location=dic["label_location"],
-            label_side=dic["label_side"],
-        ))
+        ret.extend(
+            self.set_labels(
+                labels,
+                animate=animate,
+                label_location=dic["label_location"],
+                label_side=dic["label_side"],
+            ))
         return ret

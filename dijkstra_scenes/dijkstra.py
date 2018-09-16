@@ -1284,7 +1284,10 @@ class RunAlgorithm(MovingCameraScene):
             ("color", SPT_COLOR),
             ("stroke_width", 4),
         ])
-        self.play(*H_mst.update_components(mst_updates) + H_spt.update_components(spt_updates))
+        self.play(
+            *H_mst.update_components(mst_updates) +
+            H_spt.update_components(spt_updates)
+        )
         self.wait()
 
         # restore spt + mst
