@@ -18,9 +18,11 @@ from dijkstra_scenes.graph import Node
 from mobject.functions import ParametricFunction
 from mobject.geometry import Arrow
 from mobject.geometry import Line
+from mobject.geometry import Circle
 from mobject.mobject import Group
 from mobject.mobject import interpolate_color
 from mobject.numbers import Integer
+from mobject.svg.svg_mobject import SVGMobject
 from mobject.svg.brace import BraceLabel
 from mobject.svg.tex_mobject import AlignatTexMobject
 from mobject.svg.tex_mobject import CodeMobject
@@ -305,6 +307,39 @@ def extract_node(scene, G, arrows=False, code=None, cursor=None):
 
 
 class RunAlgorithm(MovingCameraScene):
+    def intro(self):
+        # shortest path
+        u = Circle(color=const.BLACK).move_to(3 * const.LEFT + 2 * const.DOWN)
+        v = Circle(color=const.BLACK).move_to(3 * const.RIGHT + 2 * const.UP)
+        arrow = Arrow(u.get_center(), v.get_center())
+
+        self.play(ShowCreation(u))
+        self.play(ShowCreation(v))
+
+        u_v_vector = v.get_center() - \
+            u.get_center()
+        u_v_vector /= np.linalg.norm(u_v_vector)
+        u_edge_point = u.get_center() + \
+            u_v_vector * u.radius
+        v_edge_point = v.get_center() - \
+            u_v_vector * v.radius
+        self.play(UpdateFromAlphaFunc(
+            arrow,
+            lambda a, t: a.put_start_and_end_on(
+                u_edge_point,
+                interpolate(u_edge_point, v_edge_point, t),
+            ),
+        ))
+
+        # email
+        PERSON_SVG_PATH = "files/svg/person.svg"
+        person1 = SVGMobject(file_name=PERSON_SVG_PATH)
+        self.play(ShowCreation(person1))
+
+        # maps
+
+        # dijkstra
+
     def first_try(self):
         # # Draw borders
         # self.add(Line(
@@ -1948,19 +1983,20 @@ class RunAlgorithm(MovingCameraScene):
         save_state(self)
 
     def construct(self):
-        self.first_try()
-        self.counterexample()
-        self.one_step()
-        self.triangle_inequality()
-        self.generalize()
-        self.tightening()
-        self.first_run()
-        self.infinite_bounds()
-        self.parent_pointers()
-        self.last_run()
-        self.directed_graph()
-        self.spt_vs_mst()
-        self.show_code()
-        self.run_code()
-        self.analyze()
-        self.compare_data_structures()
+        self.intro()
+        # self.first_try()
+        # self.counterexample()
+        # self.one_step()
+        # self.triangle_inequality()
+        # self.generalize()
+        # self.tightening()
+        # self.first_run()
+        # self.infinite_bounds()
+        # self.parent_pointers()
+        # self.last_run()
+        # self.directed_graph()
+        # self.spt_vs_mst()
+        # self.show_code()
+        # self.run_code()
+        # self.analyze()
+        # self.compare_data_structures()
