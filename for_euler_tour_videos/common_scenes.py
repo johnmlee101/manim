@@ -277,19 +277,22 @@ class ClosingSceneOverlay(Scene):
 class ClosingScene(Scene):
     def construct(self):
         credits = [
-            "Credit One",
-            "Credit Two",
-            "Credit Three",
-            "Credit Three",
-            "Credit Three",
-            "Credit Three",
-            "Credit Three",
-            "Credit Three",
-            "Credit Three",
+            "Reference Text:",
+            "Thomas Cormen",
+            "Charles Leiserson",
+            "Ronald Rivest",
+            "Clifford Stein",
+            "Steven Skiena",
+            "Music:",
+            "Orca Vibes",
+            "Zendo",
         ]
         credits = [TextMobject(line) for line in credits]
         for i, credit in enumerate(credits):
             credit.shift(i * DOWN)
+            if i >= 6:
+                credit.shift(DOWN)
+
         credits = Group(*credits)
         credits.shift(
             np.array([0, -FRAME_Y_RADIUS - 1, 0]) -

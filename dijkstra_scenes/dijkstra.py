@@ -4,6 +4,7 @@ from animation.creation import FadeIn, FadeOut
 from animation.creation import ShowCreation
 from animation.creation import Uncreate
 from animation.creation import Write
+from animation.creation import GrowFromCenter
 from animation.indication import Indicate
 from animation.movement import MoveAlongPath
 from animation.specialized import TransformEquation
@@ -35,6 +36,7 @@ from scene.moving_camera_scene import MovingCameraScene
 from utils.bezier import interpolate
 from utils.rate_functions import there_and_back_with_pause
 from utils.rate_functions import wiggle
+from utils.rate_functions import linear
 from utils.save import save_state, load_previous_state
 from utils.space_ops import rotate_vector
 import constants as const
@@ -312,17 +314,11 @@ class RunAlgorithm(MovingCameraScene):
         u = Circle(color=const.BLACK).move_to(3 * const.LEFT + 2 * const.DOWN)
         v = Circle(color=const.BLACK).move_to(3 * const.RIGHT + 2 * const.UP)
         arrow = Arrow(u.get_center(), v.get_center())
-
-        self.play(ShowCreation(u))
-        self.play(ShowCreation(v))
-
-        u_v_vector = v.get_center() - \
-            u.get_center()
+        self.play(ShowCreation(u), ShowCreation(v))
+        u_v_vector = v.get_center() - u.get_center()
         u_v_vector /= np.linalg.norm(u_v_vector)
-        u_edge_point = u.get_center() + \
-            u_v_vector * u.radius
-        v_edge_point = v.get_center() - \
-            u_v_vector * v.radius
+        u_edge_point = u.get_center() + u_v_vector * u.radius
+        v_edge_point = v.get_center() - u_v_vector * v.radius
         self.play(UpdateFromAlphaFunc(
             arrow,
             lambda a, t: a.put_start_and_end_on(
@@ -330,15 +326,99 @@ class RunAlgorithm(MovingCameraScene):
                 interpolate(u_edge_point, v_edge_point, t),
             ),
         ))
+        self.play(FadeOut(u), FadeOut(v), FadeOut(arrow))
 
-        # email
         PERSON_SVG_PATH = "files/svg/person.svg"
-        person1 = SVGMobject(file_name=PERSON_SVG_PATH)
-        self.play(ShowCreation(person1))
+        MAIL_SVG_PATH = "files/svg/mail.svg"
+        SCHOOL_SVG_PATH = "files/svg/school.svg"
+        CAR_SVG_PATH = "files/svg/car.svg"
+        # email
+        person1 = SVGMobject(file_name=PERSON_SVG_PATH) \
+                .shift(3 * const.LEFT + const.UP) \
+                .scale(0.75)
+        person2 = SVGMobject(file_name=PERSON_SVG_PATH) \
+                .shift(3 * const.RIGHT + const.UP) \
+                .scale(0.75)
+        self.play(
+            ShowCreation(person1),
+            ShowCreation(person2),
+        )
+
+        mail = SVGMobject(file_name=MAIL_SVG_PATH) \
+            .move_to(person1.get_center() + 1.5 * const.DOWN) \
+            .scale(0.5)
+        self.play(FadeIn(mail), run_time=0.5)
+        self.play(ApplyMethod(
+            mail.move_to,
+            1.5 * (const.TOP + const.LEFT_SIDE)),
+        )
+        mail.move_to(1.5 * (const.BOTTOM + const.RIGHT_SIDE))
+        self.play(ApplyMethod(
+            mail.move_to,
+            person2.get_center() + 1.5 * const.DOWN,
+        ))
+        self.wait(0.5)
+        self.play(
+            FadeOut(person1),
+            FadeOut(person2),
+            FadeOut(mail),
+        )
 
         # maps
+        car = SVGMobject(file_name=CAR_SVG_PATH) \
+                .shift(4.5 * const.LEFT + 0.3 * const.DOWN) \
+                .scale(0.4) \
+                .flip()
+        school = SVGMobject(file_name=SCHOOL_SVG_PATH) \
+                .shift(4.7 * const.RIGHT) \
+                .scale(0.75)
+        self.play(
+            FadeIn(car),
+            FadeIn(school),
+        )
+
+        def stumble(c, t):
+            start_point = 4.5 * const.LEFT + 0.3 * const.DOWN
+            end_point = 3 * const.RIGHT + 0.3 * const.DOWN
+            vec = end_point - start_point
+            normal_vec = rotate_vector(vec, const.PI / 2)
+            normal_vec = normal_vec / np.linalg.norm(normal_vec)
+
+            def func(t):
+                return np.sin(2 * const.PI * t) * 2 * np.sin(4 * const.PI * t)
+
+            c.move_to(start_point + t * vec + normal_vec * func(t))
+
+        random_walk = UpdateFromAlphaFunc(
+            car,
+            stumble,
+            rate_func=linear,
+            run_time=3,
+        )
+        self.play(random_walk)
+        self.play(FadeOut(car), FadeOut(school))
 
         # dijkstra
+        middle = Circle(color=const.BLACK, radius=0.4)
+        self.play(ShowCreation(middle))
+
+        anims = []
+        extend = True
+        for angle in np.linspace(0, 2 * const.PI, num=10, endpoint=False):
+            dist = 3.5 if extend else 2
+            c = Circle(color=const.BLACK, radius=0.4) \
+                .move_to(rotate_vector(dist * const.RIGHT, angle))
+            v = c.get_center() / np.linalg.norm(c.get_center())
+            middle_edge = const.ORIGIN + 0.4 * v
+            a = Arrow(middle_edge, middle_edge)
+            anims.append(ApplyMethod(a.put_start_and_end_on, middle_edge, c.get_center() - 0.4 * v))
+            anims.append(GrowFromCenter(c))
+            extend = not extend
+        self.play(*anims)
+        anims = []
+        for mob in self.mobjects:
+            anims.append(FadeOut(mob))
+        self.play(*anims)
 
     def first_try(self):
         # # Draw borders
@@ -890,44 +970,44 @@ class RunAlgorithm(MovingCameraScene):
             ]),
             nodes[4]:
             OrderedDict([
-                ("dist", TexMobject("\\le 6")),
+                ("dist", TexMobject("\\le 7")),
                 ("color", QUEUE_COLOR),
             ]),
             nodes[5]:
             OrderedDict([
-                ("dist", TexMobject("\\le 11")),
+                ("dist", TexMobject("\\le 12")),
                 ("color", QUEUE_COLOR),
             ]),
             nodes[6]:
             OrderedDict([
-                ("dist", TexMobject("\\le 8")),
+                ("dist", TexMobject("\\le 9")),
                 ("color", QUEUE_COLOR),
             ]),
             nodes[7]:
             OrderedDict([
-                ("dist", TexMobject("\\le 7")),
+                ("dist", TexMobject("\\le 8")),
                 ("color", QUEUE_COLOR),
             ]),
             edges[0]:
-            OrderedDict([
-                ("weight", Integer(3)),
-                ("label_location", 0.09),
-                ("label_side", Side.COUNTERCLOCKWISE),
-            ]),
-            edges[1]:
             OrderedDict([
                 ("weight", Integer(4)),
                 ("label_location", 0.09),
                 ("label_side", Side.COUNTERCLOCKWISE),
             ]),
+            edges[1]:
+            OrderedDict([
+                ("weight", Integer(5)),
+                ("label_location", 0.09),
+                ("label_side", Side.COUNTERCLOCKWISE),
+            ]),
             edges[2]:
             OrderedDict([
-                ("weight", Integer(2)),
+                ("weight", Integer(3)),
                 ("label_location", 0.09),
             ]),
             edges[3]:
             OrderedDict([
-                ("weight", Integer(5)),
+                ("weight", Integer(6)),
                 ("label_location", 0.09),
             ]),
         }
@@ -990,11 +1070,10 @@ class RunAlgorithm(MovingCameraScene):
         self.play(*G.update_component(
             nodes[4],
             OrderedDict([
-                ("dist", Integer(6)),
+                ("dist", Integer(7)),
                 ("color", SPT_COLOR),
             ])))
 
-        # do it
         G_with_labels = Group(G, known_text, unknown_text)
         G_with_labels.generate_target().to_edge(
             const.RIGHT,
@@ -1983,20 +2062,20 @@ class RunAlgorithm(MovingCameraScene):
         save_state(self)
 
     def construct(self):
-        self.intro()
-        # self.first_try()
-        # self.counterexample()
-        # self.one_step()
-        # self.triangle_inequality()
-        # self.generalize()
-        # self.tightening()
-        # self.first_run()
-        # self.infinite_bounds()
-        # self.parent_pointers()
-        # self.last_run()
-        # self.directed_graph()
-        # self.spt_vs_mst()
-        # self.show_code()
-        # self.run_code()
-        # self.analyze()
-        # self.compare_data_structures()
+        self.intro()  # patched
+        self.first_try()
+        self.counterexample()
+        self.one_step()
+        self.triangle_inequality()
+        self.generalize()
+        self.tightening()
+        self.first_run()
+        self.infinite_bounds()
+        self.parent_pointers()
+        self.last_run()
+        self.directed_graph()
+        self.spt_vs_mst()
+        self.show_code()
+        self.run_code()
+        self.analyze()
+        self.compare_data_structures()
