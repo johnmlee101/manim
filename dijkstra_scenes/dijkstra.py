@@ -334,11 +334,11 @@ class RunAlgorithm(MovingCameraScene):
         CAR_SVG_PATH = "files/svg/car.svg"
         # email
         person1 = SVGMobject(file_name=PERSON_SVG_PATH) \
-                .shift(3 * const.LEFT + const.UP) \
-                .scale(0.75)
+            .shift(3 * const.LEFT + const.UP) \
+            .scale(0.75)
         person2 = SVGMobject(file_name=PERSON_SVG_PATH) \
-                .shift(3 * const.RIGHT + const.UP) \
-                .scale(0.75)
+            .shift(3 * const.RIGHT + const.UP) \
+            .scale(0.75)
         self.play(
             ShowCreation(person1),
             ShowCreation(person2),
@@ -348,15 +348,14 @@ class RunAlgorithm(MovingCameraScene):
             .move_to(person1.get_center() + 1.5 * const.DOWN) \
             .scale(0.5)
         self.play(FadeIn(mail), run_time=0.5)
-        self.play(ApplyMethod(
-            mail.move_to,
-            1.5 * (const.TOP + const.LEFT_SIDE)),
-        )
+        self.play(
+            ApplyMethod(mail.move_to, 1.5 * (const.TOP + const.LEFT_SIDE)), )
         mail.move_to(1.5 * (const.BOTTOM + const.RIGHT_SIDE))
-        self.play(ApplyMethod(
-            mail.move_to,
-            person2.get_center() + 1.5 * const.DOWN,
-        ))
+        self.play(
+            ApplyMethod(
+                mail.move_to,
+                person2.get_center() + 1.5 * const.DOWN,
+            ))
         self.wait(0.5)
         self.play(
             FadeOut(person1),
@@ -366,12 +365,12 @@ class RunAlgorithm(MovingCameraScene):
 
         # maps
         car = SVGMobject(file_name=CAR_SVG_PATH) \
-                .shift(4.5 * const.LEFT + 0.3 * const.DOWN) \
-                .scale(0.4) \
-                .flip()
+            .shift(4.5 * const.LEFT + 0.3 * const.DOWN) \
+            .scale(0.4) \
+            .flip()
         school = SVGMobject(file_name=SCHOOL_SVG_PATH) \
-                .shift(4.7 * const.RIGHT) \
-                .scale(0.75)
+            .shift(4.7 * const.RIGHT) \
+            .scale(0.75)
         self.play(
             FadeIn(car),
             FadeIn(school),
@@ -411,7 +410,12 @@ class RunAlgorithm(MovingCameraScene):
             v = c.get_center() / np.linalg.norm(c.get_center())
             middle_edge = const.ORIGIN + 0.4 * v
             a = Arrow(middle_edge, middle_edge)
-            anims.append(ApplyMethod(a.put_start_and_end_on, middle_edge, c.get_center() - 0.4 * v))
+            anims.append(
+                ApplyMethod(
+                    a.put_start_and_end_on,
+                    middle_edge,
+                    c.get_center() - 0.4 * v,
+                ))
             anims.append(GrowFromCenter(c))
             extend = not extend
         self.play(*anims)
@@ -607,11 +611,11 @@ class RunAlgorithm(MovingCameraScene):
         min_node = G.get_edge(min_edge).opposite(s)
         min_bound = int(G.get_node_label(min_node, "dist").tex_string[4:])
         self.play(*G.update_component(
-            min_node, OrderedDict([
+            min_node,
+            OrderedDict([
                 ("dist", Integer(min_bound)),
                 ("color", SPT_COLOR),
-            ])
-        ))
+            ])))
 
         # highlight other edge weights
         anims = []
@@ -639,8 +643,7 @@ class RunAlgorithm(MovingCameraScene):
             s, OrderedDict([
                 ("dist", Integer(0)),
                 ("color", SPT_COLOR),
-            ])
-        ))
+            ])))
 
         # set bound on neighbors
         relax_neighbors(self, G, s, show_relaxation=False)
@@ -814,10 +817,8 @@ class RunAlgorithm(MovingCameraScene):
         vec = rotate_vector(vec, np.pi / 2)
         vec *= const.MED_SMALL_BUFF
         path_length = Integer(x_len).move_to(midpoint + vec)
-        self.play(
-            *S.update_components(updates) +
-            [FadeOut(arrow1), FadeIn(path_length)]
-        )
+        self.play(*S.update_components(updates) +
+                  [FadeOut(arrow1), FadeIn(path_length)])
 
         self.play(TransformEquation(eq1, eq2, "z \\\\le (.*) \\+ (.*)"))
         self.play(TransformEquation(eq2, eq3, "z \\\\le (.*)"))
@@ -1130,13 +1131,10 @@ class RunAlgorithm(MovingCameraScene):
         X_DIST = self.X_DIST
         Y_DIST = self.Y_DIST
 
-        isolated_node = Node(
-            (-X_DIST / 2, -Y_DIST / 2, 0),
-            {
-                "color": G.color,
-                "stroke_width": G.stroke_width,
-            }
-        )
+        isolated_node = Node((-X_DIST / 2, -Y_DIST / 2, 0), {
+            "color": G.color,
+            "stroke_width": G.stroke_width,
+        })
         self.play(ShowCreation(isolated_node))
         self.wait(2)
         self.play(*isolated_node.update_attrs({"dist": TexMobject("\\infty")}))
@@ -1187,8 +1185,7 @@ class RunAlgorithm(MovingCameraScene):
             MoveAlongPath(
                 self.camera_frame,
                 ParametricFunction(
-                    lambda t: (const.FRAME_WIDTH * (1 - t), 0, 0)
-                )))
+                    lambda t: (const.FRAME_WIDTH * (1 - t), 0, 0))))
         save_state(self)
 
     def last_run(self):
@@ -1398,10 +1395,8 @@ class RunAlgorithm(MovingCameraScene):
             ("color", SPT_COLOR),
             ("stroke_width", 4),
         ])
-        self.play(
-            *H_mst.update_components(mst_updates) +
-            H_spt.update_components(spt_updates)
-        )
+        self.play(*H_mst.update_components(mst_updates) +
+                  H_spt.update_components(spt_updates))
         self.wait()
 
         # restore spt + mst
@@ -1433,8 +1428,7 @@ class RunAlgorithm(MovingCameraScene):
 
         self.play(
             *H_spt.update_components(spt_updates) +
-            H_mst.update_components(mst_updates),
-        )
+            H_mst.update_components(mst_updates), )
 
         H_spt.generate_target().shift(3.5 * const.LEFT)
         H_mst.generate_target().shift(3.5 * const.RIGHT)
@@ -1701,8 +1695,8 @@ class RunAlgorithm(MovingCameraScene):
             run_time=2,
         )
         self.play(
-            Indicate(code2.submobjects[0].submobjects[3]
-                     .submobjects[2].submobjects[1]),
+            Indicate(code2.submobjects[0].submobjects[3].submobjects[2].
+                     submobjects[1]),
             Indicate(code2.submobjects[1].submobjects[3].submobjects[0]),
             rate_func=there_and_back_with_pause,
             run_time=2,
@@ -1903,15 +1897,15 @@ class RunAlgorithm(MovingCameraScene):
                       .copy()
         self.play(
             ReplacementTransform(
-                code.submobjects[0].submobjects[3]
-                .submobjects[2].submobjects[1],
+                code.submobjects[0].submobjects[3].submobjects[2].
+                submobjects[1],
                 indicated,
                 run_time=0.7,
             ))
         self.play(
             ReplacementTransform(
-                code.submobjects[0].submobjects[3]
-                .submobjects[2].submobjects[1].copy(),
+                code.submobjects[0].submobjects[3].submobjects[2].
+                submobjects[1].copy(),
                 e_tdecreasekey,
             ),
             FadeIn(runtime.submobjects[0].submobjects[24]),
@@ -1928,12 +1922,12 @@ class RunAlgorithm(MovingCameraScene):
                                       "+ E \cdot T_\\text{decrease\_key} "
                                       "+ V \cdot T_\\text{extract\_min})")
 
-        textbook_term_0 = VGroup(*textbook_runtime.submobjects[0]
-                                 .submobjects[2:2 + 9])
-        textbook_term_1 = VGroup(*textbook_runtime.submobjects[0]
-                                 .submobjects[11:11 + 16])
-        textbook_term_2 = VGroup(*textbook_runtime.submobjects[0]
-                                 .submobjects[27:26 + 16])
+        textbook_term_0 = VGroup(
+            *textbook_runtime.submobjects[0].submobjects[2:2 + 9])
+        textbook_term_1 = VGroup(
+            *textbook_runtime.submobjects[0].submobjects[11:11 + 16])
+        textbook_term_2 = VGroup(
+            *textbook_runtime.submobjects[0].submobjects[27:26 + 16])
 
         v_textractmin.add_to_back(runtime.submobjects[0].submobjects[9])
         e_tdecreasekey.add_to_back(runtime.submobjects[0].submobjects[24])
@@ -1949,9 +1943,9 @@ class RunAlgorithm(MovingCameraScene):
         self.wait(2)
 
         self.runtime = VGroup(
-            *textbook_runtime.submobjects[0]
-            .submobjects[:2] + textbook_term_0.submobjects +
-            textbook_term_1.submobjects + textbook_term_2.submobjects +
+            *textbook_runtime.submobjects[0].submobjects[:2] +
+            textbook_term_0.submobjects + textbook_term_1.submobjects +
+            textbook_term_2.submobjects +
             [textbook_runtime.submobjects[0].submobjects[-1]])
         save_state(self)
 
@@ -1986,8 +1980,8 @@ class RunAlgorithm(MovingCameraScene):
         )
         self.play(
             ReplacementTransform(
-                runtime, VGroup(*table.submobjects[0]
-                                .submobjects[14:14 + 43])),
+                runtime,
+                VGroup(*table.submobjects[0].submobjects[14:14 + 43])),
             FadeIn(table_lines),
             FadeIn(Group(*table.submobjects[0].submobjects[:13])),
         )
