@@ -51,6 +51,12 @@ class SquareToCircle(Scene):
         self.wait(5)
 
 
+class SVGTest(Scene):
+    def construct(self):
+        mail = SVGMobject(file_name="/home/devneal/Downloads/mail.svg")
+        self.play(ShowCreation(mail))
+
+
 class WarpSquare(Scene):
     def construct(self):
         square = Square()
