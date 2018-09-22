@@ -49,8 +49,8 @@ The image does not contain a copy of the repo. This is intentional, as it allows
   * Pull it (reommended): `docker pull eulertour/manim:latest`, or
   * Build it: `docker build -t manim .`
 3. Run it!
-  * Bind mount a local repo (recommended): `docker run -itv /path/to/your/local/manim/repo:/root/manim` or
-  * Clone a remote repo: `docker run -it`, then `git clone https://github.com/eulertour/manim.git`
+  * Bind mount a local repo (recommended): `docker run -itv /path/to/your/local/manim/repo:/root/manim eulertour/manim` or
+  * Clone a remote repo: `docker run -it eulertour/manim`, then `git clone https://github.com/eulertour/manim.git`
 
 Note that the image doesn't have any development tools installed. It purpose is building/testing only.
 

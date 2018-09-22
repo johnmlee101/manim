@@ -2,15 +2,11 @@ from __future__ import print_function
 from __future__ import absolute_import
 from mobject.component import Component
 from mobject.geometry import Circle
-from mobject.geometry import Arrow
 from mobject.numbers import Integer
-from animation.creation import ShowCreation
-from animation.creation import Uncreate
 from animation.transform import ReplacementTransform
 from utils.space_ops import rotate_vector
 from collections import OrderedDict
 import constants
-import copy
 import numpy
 import sys
 
@@ -26,6 +22,7 @@ class Node(Component):
 
     def __str__(self):
         return "Node(center=({}, {}))".format(*self.mobject.get_center()[:2])
+
     __repr__ = __str__
 
     @staticmethod
@@ -35,7 +32,7 @@ class Node(Component):
             assert len(point) == 3
         except AssertionError:
             print("Invalid Node primitive: {}".format(point), file=sys.stderr)
-            import ipdb; ipdb.set_trace(context=7)
+            breakpoint(context=7)
 
     def make_key(self, point):
         return point
@@ -113,9 +110,8 @@ class Node(Component):
 
         ret = []
         if animate:
-            ret.extend([ReplacementTransform(self.mobject,
-                                             new_mob,
-                                             parent=self)])
+            ret.extend(
+                [ReplacementTransform(self.mobject, new_mob, parent=self)])
         else:
             if hasattr(self, "mobject"):
                 self.remove(self.mobject)
@@ -150,19 +146,23 @@ class Node(Component):
                     new_labels[name].move_to(self.mobject.get_center() + vec)
                 else:
                     old_label_copies[name] = \
-                            label.copy().move_to(
-                                    self.mobject.get_center() + vec)
+                        label.copy().move_to(
+                            self.mobject.get_center() + vec)
                 vec = rotate_vector(
-                        vec, 2 * numpy.pi / len(set(list(self.labels.keys()) +
-                                                    list(new_labels.keys()))))
+                    vec, 2 * numpy.pi / len(
+                        set(
+                            list(self.labels.keys()) +
+                            list(new_labels.keys()))))
             for name, label in new_labels.items():
                 if name in self.labels:
                     pass
                 else:
                     label.move_to(self.mobject.get_center() + vec)
                     vec = rotate_vector(
-                            vec, 2 * numpy.pi / len(set(list(self.labels.keys()) +
-                                                        list(new_labels.keys()))))
+                        vec, 2 * numpy.pi / len(
+                            set(
+                                list(self.labels.keys()) +
+                                list(new_labels.keys()))))
             ordered_labels = OrderedDict()
             for key in self.labels:
                 if key in new_labels:
@@ -174,7 +174,6 @@ class Node(Component):
                     ordered_labels[key] = new_labels[key]
             new_labels = ordered_labels
         return new_labels
-
 
     def get_label_scale_factor(self, label, num_labels):
         if label.get_height() > Integer(7).get_height():
@@ -188,4 +187,3 @@ class Node(Component):
             return self.parent_edge
         else:
             return None
-

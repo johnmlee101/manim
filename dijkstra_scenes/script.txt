@@ -1,0 +1,193 @@
+*motivation and problem*
+It's pretty common in computing to want to find the shortest paths between
+things. It'd be pretty annoying if in order to send an email to your neighbor
+it first had to be routed through an entirely different state. And you can
+imagine how frustrating it would be if your maps application directed you on an
+unnecessarily convoluted route to your destination. Dijkstra's algorithm gives
+us a way to solve this problem not just for a single destination, but for every
+possible destination from a source.
+
+Let's state the problem formally. Given a graph with nonnegative edge weights
+and a designated source node s, how can you find the shortest paths from s to
+every other node in the graph?
+
+*path to s*
+We already know one shortest path, namely the one from s to itself. This path
+doesn't cross any edges, so its length is zero.
+
+*bound*
+Each of the nodes adjacent to s can be reached by crossing only a single edge,
+but that's not necessarily the shortest path to reach them. Although they are
+connected directly to s, there may be a sequence of edges that forms an even
+shorter path these nodes than the edge does. That said, we have found a path to
+each of these nodes, so we can be certain that their shortest paths are at most
+as long as the edge.
+
+*tighten*
+And since this graph has no negative edge weights, we know that the shortest
+edge incident to s is the shortest path to the corresponding node. This is
+because any other path from s to this node must cross some edge incident to s.
+That edge alone will make the path at least as long as the shortest edge would,
+which means the full path can only be longer. That is, as long as the graph
+doesn't contain any negative edge weights.
+
+*start to generalize*
+Now that we've found a nontrivial shortest path it's worth stopping to look
+back at what we've done, and see how we can generalize it. We first reasoned
+that the shortest path between s and itself has length zero. From there, we
+looked at the edges incident to s to find an upper bound on the shortest path
+lengths to the corresponding nodes. We can generalize this process of bounding
+a path length as follows.
+
+*triangle inequality*
+The shortest path from s to v is at most as long as the shortest path from s to
+any node u adjacent to v plus the length of the edge connecting u to v.
+This is really just a fancy way of stating the triangle inequality, which says
+that the length of any side of a triangle is at most as long as the sum of the
+lengths of the other two sides. This is useful in our problem whenever we know
+the shortest path length for some node, but not for one of its neighbors.
+Although we don't know the length of the shortest path the neighbor node
+exactly, we do know that it can't exceed 7. Using this fact to bound the length
+of the shortest path across an edge is called relaxing that edge. It's worth
+noting that each bound obtained this way is the length of some path
+from s to v.
+
+*one step*
+After relaxing the edges incident to s, we reasoned that this inequality is
+tight for the node connected to s by the shortest edge. But we'll need
+something else in order to make more progress, because this doesn't always
+hold. Imagine we relaxed the edges incident to the node whose path length we
+just found. We can't say for sure that the bound on the node connected by the
+shortest edge is tight. 
+
+Our reasoning worked last time because we knew that any other path to the node
+in question would have length greater than the bound on that node. This means
+that the bound on the node is tight, so we can relax it's incident edges with
+the triangle inequality.
+
+*tightening*
+To apply this reasoning on a new node, we must consider all of the paths to
+that node, not just the ones that go through the node whose edges we just
+relaxed. Let's split the nodes into two groups. The known set, which contains
+the nodes whose shortest path lengths are already known, and the unknown set,
+which contains the remaining nodes. Since s is always contained in the known
+set, every shortest path to a node in the unknown set must at some point cross
+one of the edges separating the two sets. When it does, that path will be at
+least as long as the bound on the node it lands on, since all of the nodes in
+the known set have had all their edges relaxed. That means there is no path
+between the two sets which is shorter than the least bound in the unknown set,
+six in this example. Therefore, the bound on that node is tight.
+
+In general, this means that if every node in the known set has had it's edges
+relaxed, the least bound in the unknown set is tight.
+
+*logic finished*
+And just like that, we've found yet another shortest path length. And we can
+continue finding more by first relaxing the edges incident to the node whose
+shortest path length is known, then tightening the bound on the node whose
+bound is smallest. Eventually we'll know the lengths of the shortest paths from
+s to every reachable node in the graph.
+
+That last sentence brings up a somewhat subtle detail of this problem. There may
+be some nodes which can't be reached from s at all, which means we can't bound
+their shortest path lengths through relaxation. To address this fact, we will
+give every node other than s an initial bound of infinity. When the algorithm
+terminates, these infinite bounds will designate nodes that can't be reached
+from s.
+
+*parent pointers*
+But what we really wanted to find was the actual shortest paths to each of the
+nodes, not just how long they are. Luckily, we only need to make a small change
+to the algorithm to do this. We noted earlier that each bound obtained by
+relaxing an edge is equal to the length of some path from s to the terminal
+node. Namely, it's the length of the path obtained by starting with the path to
+the initial node and adding the terminal node to the end. This observation
+lends itself to a convenient way to recover the path after the algorithm
+finishes. Whenever we relax an edge we'll store a pointer to the initial node
+along with the bound from the triangle inequality. Then we can recover the
+paths by following the pointers backwards until we reach s.
+
+*algo finished*
+And that's everything we need. After running the algorithm with this extra bit
+of bookkeeping, we can follow the pointers backwards from any reachable node to
+recover the shortest path to reach it. This is dijkstra's algorithm, the
+canonical solution to the single-source shortest paths problem when there are
+no negative edge weights.
+
+*spt*
+After the algorithm is finished, the subgraph obtained by following the parent
+pointers forms a spanning tree of G rooted at s. This is called the shortest
+path tree. Every path between s and another node in the shortest path tree is
+a shortest path between those two nodes in the full graph.
+
+*directed edges*
+All of the reasoning we used in this algorithm also holds for directed graphs.
+The only difference is that when the bound on a node is tightened, we only
+relax the edges outgoing from that node. Everything else is exactly the same,
+even the shortest path tree.
+
+*mst*
+If you've studied graph algorithms before, you've likely learned about the
+minimum spanning tree, a minimum weight subset of edges which connects every
+node in a graph and doesn't contain any cycles. It's worth mentioning that in
+general, a graph's shortest path tree is different from its minimum spanning
+tree. This is easy to see for this graph. You can also use a graph like this to
+see why dijkstra's algorithm doesn't work for graphs with negative weight
+edges, since an edge encountered later in the algorithm can invalidate a
+shortest path found earlier.
+
+*code*
+Let's translate dijkstra's algorithm into python code. initialize_source() will
+bound the path length to s with 0, and the path lengths to every other node
+with infinity. Once those bounds are set, we'll use them to initialize a
+priority queue, which we'll use to pick which nodes have the lowest bounds.
+Then as long as there are nodes in the queue, we'll extract the one with the
+lowest bound and relax it's incident edges with relax_edge().
+
+*priority queue*
+The priority queue will have to support three key methods: an initialization
+method, which will be called with the set of vertices before the main loop, an
+extract_min() method which will be called to pick the node with the lowest
+bound, and a decrease_key() method, which will be implicitly called when we
+relax an edge.
+
+*run code*
+These pieces come together to run dijkstra's algorithm. We start by
+initializing the node bounds and the priority queue. Then as long as there are
+nodes in the queue we repeatedly extract the one with the lowest bound and
+relax its neighbors. Each node is extracted when its bound is equal to its
+shortest path length, and each edge is relaxed after one of its incident nodes
+is extracted from the queue. When the algorithm terminates, we can read off the
+shortest path lengths from each reachable node, and recover the shortest paths
+by following the parent pointers backward to s.
+
+*general runtime*
+The runtime of dijkstra's algorithm is determined by the runtime of the
+priority queue operations. At the start of the algorithm we initialize the
+queue with all of the vertices. Each node is extracted at most once, so there
+are at most O(V) calls to extract_min(). And each edge is relaxed at most
+twice, so there are at most O(E) calls to relax_edge(). This gives us a general
+runtime for dijkstra's algorithm, which will change depending on the
+implementation of the priority queue.
+
+*array*
+If we implement the priority queue as an array with V entries, build() will
+take O(V) time and decrease_key() will take constant time. extract_min() may
+require checking every entry in the array, so it takes at most O(V) time. This
+results in a runtime of O(V + E + V^2), which is O(V^2).
+
+*binheap*
+If we instead implement the queue with a binary heap, build() will take V time,
+and decrease_key() and extract_min() will take log V time. This results in a
+runtime of O(V + E log V + V log V), which can be rewritten as O((E+V) log V).
+This can be further simplified to O(E log V) if all vertices are reachable from
+the source.
+
+*fibheap*
+Finally, we could implement the queue with a fibonacci heap. If we do, build()
+and decrease_key() will both take constant time, and extract_min() will take
+log V time. This results in a rumtime of O(V + E + V log V) time, which is O(E
++ V log V) time. Since this runtime is the fastest asymptotically, it is often
+cited as "the" runtime of dijkstra's algorithm.
+
+Thanks for watching.
