@@ -629,14 +629,15 @@ def test_center(mocker):
 
 
 def test_align_on_border(mocker):
-    mock_dir = np.random.rand(1, 3)
-    mock_point_to_align = np.random.rand(1, 3)
-    mock_buff = np.random.rand(1, 3)
-    mock_offset = np.random.rand(1, 3)
+    mock_dir = np.random.rand(3)
+    mock_point_to_align = np.random.rand(3)
+    mock_buff = np.random.rand(3)
+    mock_offset = np.random.rand(3)
     mocker.patch.object(mobject.mobject.Mobject, 'get_critical_point', return_value=mock_point_to_align)
     mocker.patch.object(mobject.mobject.Mobject, 'shift')
 
     m = Mobject()
+    m.points = np.random.rand(10, 3)
     m.align_on_border(mock_dir, buff=mock_buff, initial_offset=mock_offset)
 
     mock_target_point = \
@@ -644,12 +645,12 @@ def test_align_on_border(mocker):
     mock_shift_val = mock_target_point - mock_point_to_align - mock_buff * np.array(mock_dir)
     mock_shift_val = mock_shift_val * abs(np.sign(mock_dir))
 
-    m.get_critical_point.assert_called_once()
+    m.get_critical_point.assert_called()
     args, kwargs = m.get_critical_point.call_args
     assert np.allclose(args[0], mock_dir)
     assert kwargs == {}
 
-    m.shift.assert_called_once()
+    m.shift.assert_called()
     args, kwargs = m.shift.call_args
     assert np.allclose(args[0], mock_shift_val + mock_offset)
     assert kwargs == {}
