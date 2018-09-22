@@ -905,13 +905,13 @@ def test_replace():
     assert(not np.allclose(m1.get_center(), m2.get_center()))
     m1.replace(m2)
     assert get_ratio(m1) == approx(m1_orig_ratio)
-    assert m1.length_over_dim(0) == m2.length_over_dim(0)
+    assert m1.length_over_dim(0) == approx(m2.length_over_dim(0))
     assert np.allclose(m1.get_center(), m2.get_center())
 
     m1.points = m1_points.copy()
     m1.replace(m2, stretch=True)
     assert get_ratio(m1) != approx(m1_orig_ratio)
-    assert m1.length_over_dim(0) == m2.length_over_dim(0)
+    assert m1.length_over_dim(0) == approx(m2.length_over_dim(0))
     assert np.allclose(m1.get_center(), m2.get_center())
 
 
