@@ -34,6 +34,7 @@ class GraphTest(Scene):
         self.play(*anims)
         self.wait(3)
 
+
 class SquareToCircle(Scene):
     def construct(self):
         circle = Circle()
@@ -44,16 +45,16 @@ class SquareToCircle(Scene):
         circle.wag(direction=UP)
         self.play(ShowCreation(circle))
 
-        #a = TexMobject("a")
-        #b = TexMobject("b").shift(DOWN)
-        #self.play(ShowCreation(a))
-        #self.play(ShowCreation(b))
+        # a = TexMobject("a")
+        # b = TexMobject("b").shift(DOWN)
+        # self.play(ShowCreation(a))
+        # self.play(ShowCreation(b))
         self.wait(5)
 
 
 class SVGTest(Scene):
     def construct(self):
-        mail = SVGMobject(file_name="/home/devneal/Downloads/mail.svg")
+        mail = SVGMobject(file_name="files/svg/mail.svg")
         self.play(ShowCreation(mail))
 
 

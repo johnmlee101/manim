@@ -355,6 +355,9 @@ class Mobject(Container):
         Direction just needs to be a vector pointing towards side or
         corner in the 2d plane.
         """
+        if self.is_off_screen():
+            # this logic only works relative to an unshifted camera
+            self.shift(-initial_offset)
         target_point = np.sign(direction) * (FRAME_X_RADIUS, FRAME_Y_RADIUS, 0)
         point_to_align = self.get_critical_point(direction)
         shift_val = target_point - point_to_align - buff * np.array(direction)

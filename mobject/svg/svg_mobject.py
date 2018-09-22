@@ -180,7 +180,6 @@ class SVGMobject(VMobject):
 
         # input preprocessing
         if fill_color in ["", "none", "#FFF", "#FFFFFF"] or Color(fill_color) == Color(WHITE):
-            opacity = 0
             fill_color = BLACK  # shdn't be necessary but avoids error msgs
         if fill_color in ["#000", "#000000"]:
             fill_color = WHITE
@@ -208,7 +207,6 @@ class SVGMobject(VMobject):
                 stroke_width=stroke_width,
                 stroke_color=stroke_color,
                 fill_color=fill_color,
-                fill_opacity=opacity
             )
         else:
             mob = RoundedRectangle(
