@@ -1,5 +1,7 @@
 import dill
 import inspect
+import os
+from constants import SAVE_DIR
 
 def get_calling_frame():
     this_file = inspect.currentframe().f_code.co_filename
@@ -36,11 +38,10 @@ def get_previous_function_name():
 def save_state(self, filename=None):
     if filename is None:
         filename = get_calling_function_name() + ".mnm"
-    state = self.__dict__.copy()
-    dill.dump(self, open(filename, "wb"))
+    dill.dump(self, open(os.path.join(SAVE_DIR, filename), "wb"))
 
 def load_previous_state(filename=None):
     if filename is None:
         filename = get_previous_function_name() + ".mnm"
-    loaded_state = dill.load(open(filename, "rb"))
+    loaded_state = dill.load(open(os.path.join(SAVE_DIR, filename), "rb"))
     return loaded_state.__dict__
