@@ -99,25 +99,27 @@ SVG_IMAGE_DIR = os.path.join(MEDIA_DIR, "designs", "svg_images")
 # TODO, staged scenes should really go into a subdirectory of a given scenes directory
 STAGED_SCENES_DIR = os.path.join(ANIMATIONS_DIR, "staged_scenes")
 ###
-THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+THIS_DIR = os.getcwd()
+LIB_DIR = os.path.dirname(os.path.realpath(__file__))
 FILE_DIR = os.path.join(THIS_DIR, "files")
 TEX_DIR = os.path.join(FILE_DIR, "Tex")
+SAVE_DIR = os.path.join(FILE_DIR, "saved_states")
 TEX_IMAGE_DIR = TEX_DIR  # TODO, What is this doing?
-# These two may be depricated now.
+# These two may be deprecated now.
 MOBJECT_DIR = os.path.join(FILE_DIR, "mobjects")
 IMAGE_MOBJECT_DIR = os.path.join(MOBJECT_DIR, "image")
 
 for folder in [FILE_DIR, RASTER_IMAGE_DIR, SVG_IMAGE_DIR, ANIMATIONS_DIR, TEX_DIR,
-               TEX_IMAGE_DIR, MOBJECT_DIR, IMAGE_MOBJECT_DIR,
+               TEX_IMAGE_DIR, SAVE_DIR, MOBJECT_DIR, IMAGE_MOBJECT_DIR,
                STAGED_SCENES_DIR]:
     if not os.path.exists(folder):
         os.makedirs(folder)
 
 TEX_TEXT_TO_REPLACE = "YourTextHere"
-TEMPLATE_TEX_FILE     = os.path.join(THIS_DIR, "template.tex")
-TEMPLATE_TEXT_FILE    = os.path.join(THIS_DIR, "text_template.tex")
-TEMPLATE_CODE_FILE    = os.path.join(THIS_DIR, "code_template.tex")
-TEMPLATE_ALIGNAT_FILE = os.path.join(THIS_DIR, "alignat_template.tex")
+TEMPLATE_TEX_FILE     = os.path.join(LIB_DIR, "template.tex")
+TEMPLATE_TEXT_FILE    = os.path.join(LIB_DIR, "text_template.tex")
+TEMPLATE_CODE_FILE    = os.path.join(LIB_DIR, "code_template.tex")
+TEMPLATE_ALIGNAT_FILE = os.path.join(LIB_DIR, "alignat_template.tex")
 
 FFMPEG_BIN = "ffmpeg"
 

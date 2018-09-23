@@ -26,6 +26,7 @@ def play_error_sound():
     print("====================")
     print("Encountered an error")
     print("====================")
+    return 1
 
 
 def play_finish_sound():
@@ -33,3 +34,4 @@ def play_finish_sound():
     print("======================")
     print("Finished without error")
     print("======================")
+    return 0

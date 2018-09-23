@@ -17,6 +17,14 @@ SEED = 386735
 np.random.seed(SEED)
 
 
+def get_random_mobject(num_points=10, depth=False):
+    m = Mobject()
+    m.points = np.random.rand(num_points, 3)
+    if not depth:
+        m.points[:, 2] = 0
+    return m
+
+
 def test_init():
     m = Mobject()
 
@@ -629,14 +637,15 @@ def test_center(mocker):
 
 
 def test_align_on_border(mocker):
-    mock_dir = np.random.rand(1, 3)
-    mock_point_to_align = np.random.rand(1, 3)
-    mock_buff = np.random.rand(1, 3)
-    mock_offset = np.random.rand(1, 3)
+    mock_dir = np.random.rand(3)
+    mock_point_to_align = np.random.rand(3)
+    mock_buff = np.random.rand(3)
+    mock_offset = np.random.rand(3)
     mocker.patch.object(mobject.mobject.Mobject, 'get_critical_point', return_value=mock_point_to_align)
     mocker.patch.object(mobject.mobject.Mobject, 'shift')
 
     m = Mobject()
+    m.points = np.random.rand(10, 3)
     m.align_on_border(mock_dir, buff=mock_buff, initial_offset=mock_offset)
 
     mock_target_point = \
@@ -644,12 +653,12 @@ def test_align_on_border(mocker):
     mock_shift_val = mock_target_point - mock_point_to_align - mock_buff * np.array(mock_dir)
     mock_shift_val = mock_shift_val * abs(np.sign(mock_dir))
 
-    m.get_critical_point.assert_called_once()
+    m.get_critical_point.assert_called()
     args, kwargs = m.get_critical_point.call_args
     assert np.allclose(args[0], mock_dir)
     assert kwargs == {}
 
-    m.shift.assert_called_once()
+    m.shift.assert_called()
     args, kwargs = m.shift.call_args
     assert np.allclose(args[0], mock_shift_val + mock_offset)
     assert kwargs == {}
@@ -742,20 +751,197 @@ def test_is_off_screen():
     assert m.is_off_screen()
 
 
-# def stretch_about_point():
+def test_stretch_about_point(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'stretch')
+    point = np.random.rand(1, 3)
+    m = Mobject()
+    m.stretch_about_point(3, 1, point)
+
+    m.stretch.assert_called_once()
+    args, kwargs = m.stretch.call_args
+    assert args[0] == 3
+    assert args[1] == 1
+    assert np.allclose(kwargs["about_point"], point)
+
+
 # def stretch_in_place():
-# def rescale_to_fit():
-# def stretch_to_fit_width():
-# def stretch_to_fit_height():
-# def stretch_to_fit_depth():
-# def scale_to_fit_width():
-# def scale_to_fit_height():
-# def scale_to_fit_depth():
-# def space_out_submobjects():
-# def move_to(self, point_or_mobject, aligned_edge=const.ORIGIN,
-# def replace():
-# def surround():
-# def position_endpoints_on():
+
+
+def test_rescale_to_fit(mocker):
+    mocker.spy(mobject.mobject.Mobject, 'length_over_dim')
+    mocker.patch.object(mobject.mobject.Mobject, 'stretch')
+    mocker.patch.object(mobject.mobject.Mobject, 'scale')
+    mock_dim = 1
+    mock_length = 3
+    points = np.random.rand(10, 3)
+    m = Mobject()
+    m.points = points
+    m.rescale_to_fit(mock_length, mock_dim, stretch=True)
+
+    m.length_over_dim.assert_called_once()
+    assert m.length_over_dim.call_args == call(m, mock_dim)
+    length = m.length_over_dim(mock_dim)
+    m.stretch.assert_called_once_with(mock_length / length, mock_dim)
+
+
+def test_stretch_to_fit_width(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'rescale_to_fit')
+    mock_width = np.random.randint(10)
+    m = Mobject()
+    m.stretch_to_fit_width(mock_width)
+    m.rescale_to_fit.assert_called_once_with(mock_width, 0, stretch=True)
+
+
+def test_stretch_to_fit_height(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'rescale_to_fit')
+    mock_height = np.random.randint(10)
+    m = Mobject()
+    m.stretch_to_fit_height(mock_height)
+    m.rescale_to_fit.assert_called_once_with(mock_height, 1, stretch=True)
+
+
+def test_stretch_to_fit_depth(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'rescale_to_fit')
+    mock_depth = np.random.randint(10)
+    m = Mobject()
+    m.stretch_to_fit_depth(mock_depth)
+    m.rescale_to_fit.assert_called_once_with(mock_depth, 2, stretch=True)
+
+
+def test_set_width(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'rescale_to_fit')
+    mock_width = np.random.randint(10)
+    mock_stretch = True
+    m = Mobject()
+    m.set_width(mock_width, stretch=mock_stretch)
+    m.rescale_to_fit.assert_called_once_with(mock_width, 0, stretch=True)
+
+    m.rescale_to_fit.reset_mock()
+    mock_stretch = False
+    m.set_width(mock_width, mock_stretch)
+    m.rescale_to_fit.assert_called_once_with(mock_width, 0, stretch=False)
+
+
+def test_set_height(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'rescale_to_fit')
+    mock_height = np.random.randint(10)
+    mock_stretch = True
+    m = Mobject()
+    m.set_height(mock_height, stretch=mock_stretch)
+    m.rescale_to_fit.assert_called_once_with(mock_height, 1, stretch=True)
+
+    m.rescale_to_fit.reset_mock()
+    mock_stretch = False
+    m.set_height(mock_height, mock_stretch)
+    m.rescale_to_fit.assert_called_once_with(mock_height, 1, stretch=False)
+
+
+def test_set_depth(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'rescale_to_fit')
+    mock_depth = np.random.randint(10)
+    mock_stretch = True
+    m = Mobject()
+    m.set_depth(mock_depth, stretch=mock_stretch)
+    m.rescale_to_fit.assert_called_once_with(mock_depth, 2, stretch=True)
+
+    m.rescale_to_fit.reset_mock()
+    mock_stretch = False
+    m.set_depth(mock_depth, mock_stretch)
+    m.rescale_to_fit.assert_called_once_with(mock_depth, 2, stretch=False)
+
+
+def test_space_out_submobjects(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'scale')
+    mock_factor = np.random.randint(10)
+    s1 = Mobject()
+    s2 = Mobject()
+    s3 = Mobject()
+    m = Mobject(s1, s2, s3)
+    m.space_out_submobjects(mock_factor)
+    assert m.scale.called_once_with(mock_factor)
+    for s in m.submobjects:
+        assert s.scale.called_once_with(1. / mock_factor)
+
+
+def test_move_to(mocker):
+    mock_point_to_align = np.random.rand(1, 3)
+    mock_coor_mask = np.random.rand(1, 3)
+    mocker.patch.object(
+        mobject.mobject.Mobject,
+        'get_critical_point',
+        return_value=mock_point_to_align,
+    )
+    mocker.patch.object(mobject.mobject.Mobject, 'shift')
+    m = Mobject()
+    mock_point_or_mobject = np.random.rand(1, 3)
+    m.move_to(mock_point_or_mobject, coor_mask=mock_coor_mask)
+
+    m.get_critical_point.assert_called_once()
+    args, kwargs = m.get_critical_point.call_args
+    assert np.allclose(args[0], const.ORIGIN)
+    assert kwargs == {}
+
+    m.shift.assert_called_once()
+    args, kwargs = m.shift.call_args
+    assert np.allclose(
+        args[0],
+        (mock_point_or_mobject - mock_point_to_align) * mock_coor_mask,
+    )
+
+
+def test_replace():
+    m1_points = np.random.rand(10, 3)
+    m1 = Mobject()
+    m1.points = m1_points.copy()
+    m2_points = np.random.rand(10, 3)
+    m2 = Mobject()
+    m2.points = m2_points.copy()
+
+    def get_ratio(mob):
+        return mob.length_over_dim(0) / mob.length_over_dim(1)
+
+    m1_orig_ratio = get_ratio(m1)
+    assert m1.length_over_dim(0) != m2.length_over_dim(0)
+    assert(not np.allclose(m1.get_center(), m2.get_center()))
+    m1.replace(m2)
+    assert get_ratio(m1) == approx(m1_orig_ratio)
+    assert m1.length_over_dim(0) == approx(m2.length_over_dim(0))
+    assert np.allclose(m1.get_center(), m2.get_center())
+
+    m1.points = m1_points.copy()
+    m1.replace(m2, stretch=True)
+    assert get_ratio(m1) != approx(m1_orig_ratio)
+    assert m1.length_over_dim(0) == approx(m2.length_over_dim(0))
+    assert np.allclose(m1.get_center(), m2.get_center())
+
+
+def test_surround(mocker):
+    mocker.patch.object(mobject.mobject.Mobject, 'replace')
+    mocker.patch.object(mobject.mobject.Mobject, 'scale_in_place')
+    m1 = Mobject()
+    m2 = Mobject()
+
+    m1.surround(m2)
+    m1.replace.assert_called_once_with(m2, 0, False)
+    m1.scale_in_place.assert_called_once_with(1.2)
+
+
+def test_position_endpoints_on(mocker):
+    mocker.spy(mobject.mobject.Mobject, 'scale')
+    mocker.spy(mobject.mobject.Mobject, 'rotate')
+    mocker.spy(mobject.mobject.Mobject, 'shift')
+    m = get_random_mobject()
+    mock_start = np.append(np.random.rand(2), 0)
+    mock_end = np.append(np.random.rand(2), 0)
+
+    m.position_endpoints_on(mock_start, mock_end)
+    assert np.allclose(m.points[0], mock_start)
+    assert np.allclose(m.points[-1], mock_end)
+    m.scale.assert_called_once()
+    m.rotate.assert_called_once()
+    m.shift.assert_called_once()
+
+
 # def add_background_rectangle():
 # def add_background_rectangle_to_submobjects():
 # def add_background_rectangle_to_family_members_with_points():

@@ -355,6 +355,9 @@ class Mobject(Container):
         Direction just needs to be a vector pointing towards side or
         corner in the 2d plane.
         """
+        if self.is_off_screen():
+            # this logic only works relative to an unshifted camera
+            self.shift(-initial_offset)
         target_point = np.sign(direction) * (FRAME_X_RADIUS, FRAME_Y_RADIUS, 0)
         point_to_align = self.get_critical_point(direction)
         shift_val = target_point - point_to_align - buff * np.array(direction)
@@ -448,8 +451,8 @@ class Mobject(Container):
     def stretch_about_point(self, factor, dim, point):
         return self.stretch(factor, dim, about_point=point)
 
+    @deprecated('now redundant with stretch')
     def stretch_in_place(self, factor, dim):
-        # Now redundant with stretch
         return self.stretch(factor, dim)
 
     def rescale_to_fit(self, length, dim, stretch=False, **kwargs):
@@ -469,7 +472,7 @@ class Mobject(Container):
         return self.rescale_to_fit(height, 1, stretch=True, **kwargs)
 
     def stretch_to_fit_depth(self, depth, **kwargs):
-        return self.rescale_to_fit(depth, 1, stretch=True, **kwargs)
+        return self.rescale_to_fit(depth, 2, stretch=True, **kwargs)
 
     def set_width(self, width, stretch=False, **kwargs):
         return self.rescale_to_fit(width, 0, stretch=stretch, **kwargs)
@@ -517,6 +520,9 @@ class Mobject(Container):
         self.scale_in_place(buffer_factor)
 
     def position_endpoints_on(self, start, end):
+        if any(self.points[:, 2]):
+            raise RuntimeError("Mobject.position_endpoints_on() does not work "
+                               "with Mobjects that have depth")
         curr_vect = self.points[-1] - self.points[0]
         if np.all(curr_vect == 0):
             raise Exception("Cannot position endpoints of closed loop")
