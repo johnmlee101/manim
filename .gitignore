@@ -31,3 +31,4 @@ htmlcov
 manimenv/
 core
 .cache
+_build
