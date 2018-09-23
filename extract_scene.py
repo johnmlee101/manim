@@ -262,7 +262,7 @@ def get_scene_classes(scene_names_to_classes, config):
 
 
 def get_module(file_name):
-    module_name = file_name.replace(".py", "").replace(os.sep, ".")
+    module_name = os.path.basename(file_name).replace(".py", "")
     return importlib.import_module(module_name)
 
 
