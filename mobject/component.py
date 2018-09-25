@@ -11,12 +11,21 @@ import sys
 
 
 class Component(Mobject):
+    """
+    Components are customizable Mobjects, designed to make creating data
+    structures simpler. Each Component contains one or more subcomponents or
+    submobjects, which results in a hierarchical organization of each. This
+    makes it possible to operate on Components as data stuctures with methods
+    such as ``Graph.set_node_label()`` rather than collections of Circles and
+    Lines.
+    """
     CONFIG = {
         "scale_factor": 1
     }
 
     def __init__(self, *args, **kwargs):
-        # typechecking
+        # components are responsible for creating their own "unique enough"
+        # keys
         self.key = self.make_key(*args)
         self.assert_primitive(self.key)
 
@@ -53,6 +62,12 @@ class Component(Mobject):
         pass
 
     def update_attrs(self):
+        """
+        ``update_attrs()`` is the key method for components. It should be
+        written such that a calling ``update_attrs()`` on the top-level
+        Component makes all the desired updates to each subcomponent
+        automatically.
+        """
         # implemented by subclasses
         pass
 

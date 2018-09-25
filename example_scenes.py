@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from big_ol_pile_of_manim_imports import *
-from dijkstra_scenes.graph import Graph
+from mobject.components.graph import Graph
 from collections import OrderedDict
 
 # To watch one of these scenes, run the following:
@@ -29,8 +29,12 @@ class GraphTest(Scene):
             ("weight", TexMobject("a"))
         ])
         anims = G.update_component(edges[0], updates)
-        a = anims[0]
-        b = anims[1]
+        self.play(*anims)
+
+        updates = OrderedDict([
+            ("dist", Integer(8))
+        ])
+        anims = G.update_component(nodes[0], updates)
         self.play(*anims)
         self.wait(3)
 

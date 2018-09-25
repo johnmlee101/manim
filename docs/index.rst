@@ -4,18 +4,29 @@
    contain the root `toctree` directive.
 
 manim
-=================================
+=====
 
-``manim`` is an animation engine for explanatory math videos.
-
-
-Getting Started
----------------
+``manim`` is an animation engine for explanatory math videos. It uses Python to
+make creating precise 2D animations quick and easy.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :caption: Contents:
+    :maxdepth: 2
 
+    about
+    install
+    getting_started
+
+.. toctree::
+    :caption: Modules:
+    :maxdepth: 2
+
+    mobject
+    animation
+    continual_animation
+    scene
+    camera
+    utils
 
 Indices and tables
 ==================
@@ -23,3 +34,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
