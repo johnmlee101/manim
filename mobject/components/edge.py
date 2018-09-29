@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
 from mobject.component import Component
 from mobject.components.node import Node
 from mobject.geometry import Arrow
@@ -22,10 +20,10 @@ class Side(Enum):
 
 
 class Edge(Component):
-    def __init__(self, start_node, end_node, attrs={}, **kwargs):
+    def __init__(self, start_node, end_node, **kwargs):
         self.start_node = start_node
         self.end_node = end_node
-        Component.__init__(self, start_node, end_node, attrs=attrs, **kwargs)
+        Component.__init__(self, start_node, end_node, **kwargs)
 
     def __str__(self):
         return "Edge(start=({}, {}), end=({}, {}))".format(
@@ -63,10 +61,11 @@ class Edge(Component):
         else:
             return self.mobject.scale_factor
 
-    def move_labels(self, new_labels, **kwargs):
-        label_location = kwargs.get("label_location", 0.5)
-        label_side = kwargs.get("label_side", Side.CLOCKWISE)
-        # move
+    def place_labels(self, new_labels, **kwargs):
+        dic = kwargs.get("dic", OrderedDict())
+        label_location = dic.get("label_location", 0.5)
+        label_side = dic.get("label_side", Side.CLOCKWISE)
+
         start, end = self.mobject.get_start_and_end()
         vec = start - end
         vec = vec / numpy.linalg.norm(vec)
@@ -128,11 +127,14 @@ class Edge(Component):
         new_labels = ordered_labels
         return new_labels
 
-    def update_attrs(self, dic=None, animate=True):
-        # empty update for when start or end node changes radius
-        if dic is None:
-            dic = OrderedDict()
+    def generate_labels_dict(self, dic):
+        labels = OrderedDict()
+        for key in dic.keys():
+            if key == "weight":
+                labels["weight"] = dic["weight"]
+        return labels
 
+    def generate_mobject(self, dic, labels_dict):
         # Create a dictionary with all attributes to create a new Mobject.
         # Unspecified values will be filled from the current Mobject if it
         # exists, and with default values if not.
@@ -189,7 +191,6 @@ class Edge(Component):
             else:
                 dic["label_side"] = Side.CLOCKWISE
 
-        ret = []
         normalized_vec = self.end_node.mobject.get_center() - \
             self.start_node.mobject.get_center()
         normalized_vec = normalized_vec / numpy.linalg.norm(normalized_vec)
@@ -219,8 +220,10 @@ class Edge(Component):
                      numpy.linalg.norm(x - midpoint))
 
             mob.shift(-0.05 * normal_vec).apply_function(f)
-        new_mob = mob
+        return mob
 
+    def update_mobject(self, new_mob, animate=True):
+        ret = []
         if animate:
             if type(self.mobject) == Line and type(new_mob) == Arrow:
                 ret.extend([
@@ -235,19 +238,4 @@ class Edge(Component):
                 self.remove(self.mobject)
             self.add(new_mob)
         self.mobject = new_mob
-
-        # update labels
-        labels = OrderedDict()
-        for key in dic.keys():
-            if key == "weight":
-                labels["weight"] = dic["weight"]
-        if not hasattr(self, "labels"):
-            self.labels = OrderedDict()
-        ret.extend(
-            self.set_labels(
-                labels,
-                animate=animate,
-                label_location=dic["label_location"],
-                label_side=dic["label_side"],
-            ))
         return ret

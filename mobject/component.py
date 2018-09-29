@@ -6,8 +6,10 @@ from mobject.mobject import Mobject
 from animation.creation import ShowCreation
 from animation.creation import Uncreate
 from animation.transform import ReplacementTransform
+from utils.simple_functions import update_without_overwrite
 import copy
 import sys
+import warnings
 
 
 class Component(Mobject):
@@ -19,6 +21,7 @@ class Component(Mobject):
     such as ``Graph.set_node_label()`` rather than collections of Circles and
     Lines.
     """
+    # modifications to self.CONFIG will persist for future mobjects
     CONFIG = {
         "scale_factor": 1
     }
@@ -28,48 +31,42 @@ class Component(Mobject):
         # keys
         self.key = self.make_key(*args)
         self.assert_primitive(self.key)
+        self.labels = OrderedDict()
 
-        # modifications to self.CONFIG will
-        # persist for future mobjects
-        config_copy = self.CONFIG.copy()
-        config_copy.update(kwargs)
-        kwargs = config_copy
-
-        # mobject information is stored in the Mobject, not the Component
+        # attributes are stored in the mobject, not the component. we call this
+        # here so components can be added and removed like regular mobjects
         Mobject.__init__(self)
-        delattr(self, "dim")
-        delattr(self, "scale_factor")
-        delattr(self, "name")
         delattr(self, "color")
+        delattr(self, "name")
+        delattr(self, "dim")
+        delattr(self, "target")
 
-        if "attrs" in kwargs:
-            attrs = kwargs["attrs"]
-            del kwargs["attrs"]
-        else:
-            attrs = OrderedDict()
-        for key in kwargs:
-            if key not in attrs:
-                attrs[key] = kwargs[key]
-        self.update_attrs(attrs, animate=False)
+        self.update_attrs(
+            update_without_overwrite(kwargs, self.CONFIG), animate=False)
 
     @staticmethod
     def assert_primitive(self):
         # implemented by subclasses
-        pass
+        raise NotImplementedError
 
     def make_key(self):
         # implemented by subclasses
-        pass
+        raise NotImplementedError
 
-    def update_attrs(self):
+    def update_attrs(self, dic=None, animate=True):
         """
         ``update_attrs()`` is the key method for components. It should be
         written such that a calling ``update_attrs()`` on the top-level
         Component makes all the desired updates to each subcomponent
         automatically.
         """
-        # implemented by subclasses
-        pass
+        if dic is None:
+            dic = OrderedDict()
+        labels_dict = self.generate_labels_dict(dic)
+        new_mob = self.generate_mobject(dic, labels_dict)
+        anims = self.update_mobject(new_mob, animate=animate)
+        anims.extend(self.update_labels(labels_dict, animate=animate, dic=dic))
+        return anims
 
     def set_label(self, name, label, animate=True, **kwargs):
         kwargs["animate"] = animate
@@ -77,7 +74,7 @@ class Component(Mobject):
         d[name] = label
         return self.set_labels(d, **kwargs)
 
-    def set_labels(self, new_labels, **kwargs):
+    def update_labels(self, new_labels, **kwargs):
         assert(type(new_labels) == OrderedDict)
         # make sure labels are different
         for old_label in self.labels.values():
@@ -100,9 +97,10 @@ class Component(Mobject):
             scale_factor = self.get_label_scale_factor(label, len(new_labels))
             label.scale(scale_factor)
 
-        new_labels = self.move_labels(new_labels, **kwargs)
+        # place
+        new_labels = self.place_labels(new_labels, **kwargs)
 
-        # animate / create
+        # animate
         if "animate" not in kwargs or kwargs["animate"]:
             for name in new_labels.keys():
                 if name in self.labels:
@@ -129,12 +127,15 @@ class Component(Mobject):
         self.labels = new_labels
         return anims
 
-    def move_labels(self, new_labels):
+    def place_labels(self, new_labels):
         # implemented by subclass
-        pass
+        raise NotImplementedError
 
     def get_label(self, name):
         return self.labels.get(name, None)
+
+    def get_label_scale_factor(self, label, num_labels):
+        raise NotImplementedError
 
     def get_center(self):
         print("You called get_center() on a Component rather than its mobject",

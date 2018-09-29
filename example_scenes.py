@@ -13,32 +13,6 @@ from collections import OrderedDict
 # to the n'th animation of a scene.
 
 
-class GraphTest(Scene):
-    def construct(self):
-        nodes = [
-            (-3, 0, 0),
-            (3, 0, 0),
-        ]
-        edges = [
-            ((-3, 0, 0), (3, 0, 0))
-        ]
-        G = Graph(nodes, edges)
-        self.play(ShowCreation(G))
-
-        updates = OrderedDict([
-            ("weight", TexMobject("a"))
-        ])
-        anims = G.update_component(edges[0], updates)
-        self.play(*anims)
-
-        updates = OrderedDict([
-            ("dist", Integer(8))
-        ])
-        anims = G.update_component(nodes[0], updates)
-        self.play(*anims)
-        self.wait(3)
-
-
 class SquareToCircle(Scene):
     def construct(self):
         circle = Circle()

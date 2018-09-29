@@ -2,6 +2,7 @@ from collections import OrderedDict
 from mobject.components.edge import Edge
 from mobject.components.node import Node
 from mobject.mobject import Group
+from utils.simple_functions import update_without_overwrite
 import constants
 import copy
 import sys
@@ -37,9 +38,8 @@ class Graph(Group):
 
         # create nodes
         for point in nodes:
-            node = Node(point,
-                        attrs=attrs.get(point, OrderedDict()),
-                        **kwargs)
+            node_attrs = attrs.get(point, OrderedDict())
+            node = Node(point, **update_without_overwrite(node_attrs, kwargs))
             self.nodes[node.key] = node
             self.add(node)
 
@@ -50,7 +50,7 @@ class Graph(Group):
             edge_attrs["curved"] = (v, u) in edges
             u = self.nodes[u]
             v = self.nodes[v]
-            edge = Edge(u, v, attrs=edge_attrs, **kwargs)
+            edge = Edge(u, v, **update_without_overwrite(edge_attrs, kwargs))
             self.edges[edge.key] = edge
             self.add(edge)
 

@@ -56,3 +56,10 @@ def fdiv(a, b, zero_over_zero_value=None):
         where = True
 
     return np.true_divide(a, b, out=out, where=where)
+
+
+def update_without_overwrite(d1, d2):
+    for key in d2:
+        if key not in d1:
+            d1[key] = d2[key]
+    return d1

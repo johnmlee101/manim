@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
 from mobject.component import Component
 from mobject.geometry import Circle
 from mobject.numbers import Integer
@@ -17,8 +15,8 @@ HEIGHT_RELATIVE_TO_NODE = [0, 0.23, 0.23, 0.23]
 
 
 class Node(Component):
-    def __init__(self, point, attrs={}, **kwargs):
-        Component.__init__(self, point, attrs=attrs, **kwargs)
+    def __init__(self, point, **kwargs):
+        Component.__init__(self, point, **kwargs)
 
     def __str__(self):
         return "Node(center=({}, {}))".format(*self.mobject.get_center()[:2])
@@ -37,14 +35,7 @@ class Node(Component):
     def make_key(self, point):
         return point
 
-    def update_attrs(self, dic, animate=True):
-        if dic is None:
-            return
-        """
-        the labels dict is needed for the radius calculation later, but the
-        mobject (specifically mobject.get_center()) is needed before the labels
-        can be placed
-        """
+    def generate_labels_dict(self, dic):
         labels = OrderedDict()
         for key in list(dic.keys()):
             if key == "variable":
@@ -56,9 +47,9 @@ class Node(Component):
             elif key == "parent_pointer":
                 labels["parent_pointer"] = dic["parent_pointer"]
                 del dic["parent_pointer"]
-        if not hasattr(self, "labels"):
-            self.labels = OrderedDict()
+        return labels
 
+    def generate_mobject(self, dic, labels):
         # generate mobject attributes from component attributes
         # update number of labels for scaling
         num_labels = len(self.labels)
@@ -98,11 +89,11 @@ class Node(Component):
                 print("Attempted to initialize Node without color")
                 breakpoint(context=7)
 
-        mobject = dic.get("mobject", None)
-        if mobject is None:
+        mobject_class = dic.get("mobject_class", None)
+        if mobject_class is None:
             new_mob = Circle(**dic)
         else:
-            new_mob = mobject
+            new_mob = mobject_class(**dic)
 
         # the component is first initialized without a mobject attr
         if not hasattr(self, "mobject"):
@@ -110,7 +101,9 @@ class Node(Component):
         else:
             new_mob.move_to(self.mobject.get_center())
 
-        # update mobject
+        return new_mob
+
+    def update_mobject(self, new_mob, animate=True):
         ret = []
         if animate:
             ret.extend(
@@ -120,17 +113,9 @@ class Node(Component):
                 self.remove(self.mobject)
             self.add(new_mob)
         self.mobject = new_mob
-
-        # update labels
-        if labels:
-            if animate:
-                ret.extend(self.set_labels(labels))
-            else:
-                self.set_labels(labels, animate=False)
-
         return ret
 
-    def move_labels(self, new_labels, **kwargs):
+    def place_labels(self, new_labels, **kwargs):
         # move
         if len(set(list(self.labels.keys()) + list(new_labels.keys()))) == 1:
             if len(new_labels) == 1:
