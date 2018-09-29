@@ -4,7 +4,6 @@ from mobject.components.node import Node
 from mobject.mobject import Group
 from utils.simple_functions import update_without_overwrite
 import constants
-import copy
 import sys
 
 
@@ -16,21 +15,19 @@ class Graph(Group):
         "color": constants.BLACK,
     }
 
-    def __init__(self, nodes, edges, attrs=OrderedDict(), **kwargs):
+    def __init__(self, nodes, edges, attrs=None, **kwargs):
         # typechecking
         for node in nodes:
             Node.assert_primitive(node)
         for edge in edges:
             Edge.assert_primitive(edge)
 
-        # prevent changes to attrs
-        attrs = copy.deepcopy(attrs)
+        if attrs is None:
+            attrs = OrderedDict()
 
         # mobject init
-        config_copy = self.CONFIG.copy()
-        config_copy.update(kwargs)
-        kwargs = config_copy
-        Group.__init__(self, **config_copy)
+        update_without_overwrite(kwargs, self.CONFIG)
+        Group.__init__(self, **kwargs)
 
         # create submobjects
         self.nodes = {}

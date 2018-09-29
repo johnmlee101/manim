@@ -60,7 +60,8 @@ class Node(Component):
                 num_labels -= 1
 
         if "scale_factor" not in dic:
-            if hasattr(self, "mobject"):
+            if hasattr(self, "mobject") and \
+               hasattr(self.mobject, "scale_factor"):
                 dic["scale_factor"] = self.mobject.scale_factor
             else:
                 print("Attempted to initialize Node without scale_factor")
@@ -76,14 +77,16 @@ class Node(Component):
             dic["radius"] = self.mobject.radius
 
         if "stroke_width" not in dic:
-            if hasattr(self, "mobject"):
+            if hasattr(self, "mobject") and \
+               hasattr(self.mobject, "stroke_width"):
                 dic["stroke_width"] = self.mobject.stroke_width
             else:
                 print("Attempted to initialize Node without stroke_width")
                 breakpoint(context=7)
 
         if "color" not in dic:
-            if hasattr(self, "mobject"):
+            if hasattr(self, "mobject") and \
+               hasattr(self.mobject, "color"):
                 dic["color"] = self.mobject.color
             else:
                 print("Attempted to initialize Node without color")

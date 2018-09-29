@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 from big_ol_pile_of_manim_imports import *
-from mobject.components.graph import Graph
-from collections import OrderedDict
 
 # To watch one of these scenes, run the following:
 # python extract_scene.py file_name <SceneName> -p

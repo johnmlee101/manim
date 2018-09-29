@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
 from collections import OrderedDict as OrderedDict
 from mobject.geometry import Arrow
 from mobject.mobject import Mobject
