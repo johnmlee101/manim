@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 from big_ol_pile_of_manim_imports import *
-from dijkstra_scenes.graph import Graph
-from collections import OrderedDict
 
 # To watch one of these scenes, run the following:
 # python extract_scene.py file_name <SceneName> -p
@@ -13,42 +11,27 @@ from collections import OrderedDict
 # to the n'th animation of a scene.
 
 
-class GraphTest(Scene):
-    def construct(self):
-        nodes = [
-            (-3, 0, 0),
-            (3, 0, 0),
-        ]
-        edges = [
-            ((-3, 0, 0), (3, 0, 0))
-        ]
-        G = Graph(nodes, edges)
-        self.play(ShowCreation(G))
-
-        updates = OrderedDict([
-            ("weight", TexMobject("a"))
-        ])
-        anims = G.update_component(edges[0], updates)
-        a = anims[0]
-        b = anims[1]
-        self.play(*anims)
-        self.wait(3)
-
-
 class SquareToCircle(Scene):
     def construct(self):
         circle = Circle()
-        square = Square()
-        square.flip(RIGHT)
-        square.rotate(-3 * TAU / 8)
+        square1 = Square()
+        square1.flip(RIGHT)
+        square1.rotate(-3 * TAU / 8)
+        square1.scale(0.5)
+        square1.set_fill(RED, opacity=1)
+
+        square2 = Square()
+        square2.flip(RIGHT)
+        square2.rotate(-3 * TAU / 8)
+        square2.scale(0.5)
+        square2.set_fill(GREEN, opacity=1)
+
         circle.set_fill(PINK, opacity=0.5)
-        circle.wag(direction=UP)
+
+        circle.add(square1)
+        circle.add_to_back(square2)
         self.play(ShowCreation(circle))
 
-        # a = TexMobject("a")
-        # b = TexMobject("b").shift(DOWN)
-        # self.play(ShowCreation(a))
-        # self.play(ShowCreation(b))
         self.wait(5)
 
 

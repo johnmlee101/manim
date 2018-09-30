@@ -30,7 +30,7 @@ from functools import reduce
 
 class Mobject(Container):
     """
-    Mathematical Object
+    Objects within Manim.
     """
     CONFIG = {
         "color": BLACK,
@@ -56,17 +56,31 @@ class Mobject(Container):
         return str(self.name)
 
     def reset_points(self):
+        """
+        Remove all points from the Mobject.
+        """
         self.points = np.zeros((0, self.dim))
 
     def init_colors(self):
+        """
+        Initialize the Mobject's colors. This is typically implemented in
+        subclasses.
+        """
         # For subclasses
         pass
 
     def generate_points(self):
+        """
+        Initialize the Mobject's points. This is typically implemented in
+        subclasses.
+        """
         # Typically implemented in subclass, unless purposefully left blank
         pass
 
     def add(self, *mobjects):
+        """
+        Add submobjects to this Mobject, in front of all other submobjects.
+        """
         if not all(map(lambda m: isinstance(m, Mobject), mobjects)):
             raise Exception("All submobjects must be of type Mobject")
         if self in mobjects:
@@ -76,6 +90,9 @@ class Mobject(Container):
         return self
 
     def add_to_back(self, *mobjects):
+        """
+        Add submobjects to this Mobject, behind all other submobjects.
+        """
         if not all(map(lambda m: isinstance(m, Mobject), mobjects)):
             raise Exception("All submobjects must be of type Mobject")
         if self in mobjects:
@@ -85,18 +102,23 @@ class Mobject(Container):
         return self
 
     def remove(self, *mobjects):
+        """
+        Remove submobject from the Mobject.
+        """
         for mobject in mobjects:
             if mobject in self.submobjects:
                 self.submobjects.remove(mobject)
         return self
 
     def get_array_attrs(self):
+        """
+        Returns a list containing the Mobject's array attributes.
+        """
         return ["points"]
 
     def digest_mobject_attrs(self):
         """
-        Ensures all attributes which are mobjects are included
-        in the submobjects list.
+        Ensures all Mobject attributes are included in the submobjects list.
         """
         mobject_attrs = filter(
             lambda x: isinstance(x, Mobject),
@@ -106,6 +128,10 @@ class Mobject(Container):
         return self
 
     def apply_over_attr_arrays(self, func):
+        """
+        Apply a function to each attribute returned from
+        :meth:`~mobject.mobject.Mobject.get_array_attrs`
+        """
         for attr in self.get_array_attrs():
             setattr(self, attr, func(getattr(self, attr)))
         return self
@@ -128,6 +154,9 @@ class Mobject(Container):
         )
 
     def copy(self):
+        """
+        Returns a shallow copy of the Mobject.
+        """
         # TODO, either justify reason for shallow copy, or
         # remove this redundancy everywhere
         # return self.deepcopy()
@@ -146,9 +175,16 @@ class Mobject(Container):
         return copy_mobject
 
     def deepcopy(self):
+        """
+        Returns a deep copy of the Mobject.
+        """
         return copy.deepcopy(self)
 
     def generate_target(self, use_deepcopy=False):
+        """
+        Creates a target for the Mobject to be used with
+        :class:`animation.transform.MoveToTarget`.
+        """
         self.target = None  # Prevent exponential explosion
         if use_deepcopy:
             self.target = self.deepcopy()
@@ -159,6 +195,9 @@ class Mobject(Container):
     # Updating
 
     def update(self, dt):
+        """
+        Update the Mobject with each of its updaters
+        """
         for updater in self.updaters:
             num_args = get_num_args(updater)
             if num_args == 1:
@@ -172,6 +211,9 @@ class Mobject(Container):
                 )
 
     def get_time_based_updaters(self):
+        """
+        Returns a list containing the Mobject's time-based updaters.
+        """
         return [
             updater
             for updater in self.updaters
@@ -179,9 +221,15 @@ class Mobject(Container):
         ]
 
     def get_updaters(self):
+        """
+        Returns a list of the Mobject's updaters.
+        """
         return self.updaters
 
     def add_updater(self, update_function, index=None, call_updater=True):
+        """
+        Add an updater to the Mobject.
+        """
         if index is None:
             self.updaters.append(update_function)
         else:
@@ -191,20 +239,33 @@ class Mobject(Container):
         return self
 
     def remove_updater(self, update_function):
+        """
+        Remove and updater from the Mobject
+        """
         while update_function in self.updaters:
             self.updaters.remove(update_function)
         return self
 
     def clear_updaters(self):
+        """
+        Remove all updaters from the Mobject
+        """
         self.updaters = []
 
     # Transforming operations
 
     def apply_to_family(self, func):
+        """
+        Apply a function to each Mobject in the Mobject's family. A Mobject's
+        family consists of itself and the families of its submobjects.
+        """
         for mob in self.family_members_with_points():
             func(mob)
 
     def shift(self, *vectors):
+        """
+        Move the Mobject relative to it's current position
+        """
         total_vector = reduce(op.add, vectors)
         for mob in self.family_members_with_points():
             mob.points = mob.points.astype('float')
@@ -227,9 +288,15 @@ class Mobject(Container):
         return self
 
     def rotate_about_origin(self, angle, axis=OUT, axes=[]):
+        """
+        Rotate the Mobject about the origin.
+        """
         return self.rotate(angle, axis, about_point=ORIGIN)
 
     def rotate(self, angle, axis=OUT, **kwargs):
+        """
+        Rotate the Mobject, by default about its center
+        """
         rot_matrix = rotation_matrix(angle, axis)
         self.apply_points_function_about_point(
             lambda points: np.dot(points, rot_matrix.T),
@@ -238,9 +305,15 @@ class Mobject(Container):
         return self
 
     def flip(self, axis=UP, **kwargs):
+        """
+        Flip the Mobject, by default along the vertical axis
+        """
         return self.rotate(TAU / 2, axis, **kwargs)
 
     def stretch(self, factor, dim, **kwargs):
+        """
+        Stretch the Mobject
+        """
         def func(points):
             points[:, dim] *= factor
             return points
