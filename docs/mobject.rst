@@ -9,7 +9,7 @@ Subpackages
     mobject.svg
     mobject.types
 
-``mobject.component`` --- Customizable mobjects
+``mobject.component`` --- Customizable Mobjects
 -----------------------------------------------
 
 .. automodule:: mobject.component
@@ -64,6 +64,10 @@ Subpackages
     :members:
     :undoc-members:
     :show-inheritance:
+    :member-order: bysource
+    :exclude-members:
+      __init__,
+      CONFIG
 
 ``mobject.number_line`` --- Number Lines
 ----------------------------------------

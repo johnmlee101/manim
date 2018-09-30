@@ -7,7 +7,7 @@ manim
 =====
 
 ``manim`` is an animation engine for explanatory math videos. It uses Python to
-make creating precise 2D animations quick and easy.
+make creating precise 2D animations simple and easy.
 
 .. toctree::
     :caption: Contents:
