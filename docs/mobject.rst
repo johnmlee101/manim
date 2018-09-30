@@ -1,4 +1,4 @@
-``mobject`` --- Mathimatical Objects
+``mobject`` --- Mathematical Objects
 ====================================
 
 Subpackages
