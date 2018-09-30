@@ -1,5 +1,6 @@
 # Manim
 [![CircleCI](https://circleci.com/gh/eulertour/manim.svg?style=shield)](https://circleci.com/gh/eulertour/manim)
+[![Documentation Status](https://readthedocs.org/projects/manim/badge/?version=latest)](https://manim.readthedocs.io/en/latest/?badge=latest)
 
 Animation engine for explanatory math videos.
 
@@ -24,6 +25,8 @@ The dockerfile is (should be) the definitive source for all of Manim's requireme
 
 ## How to Use
 Todd Zimmerman put together a [very nice tutorial](https://talkingphysics.wordpress.com/2018/06/11/learning-how-to-animate-videos-using-manim-series-a-journey/) on getting started with manim.  I can't make promises that future versions will always be compatible with what is discussed in that tutorial, but he certainly does a much better job than Grant has laying out the basics.
+
+Documentation is in progress [here](https://manim.readthedocs.io/en/latest/index.html).
 
 Try running the following:
 ```sh
