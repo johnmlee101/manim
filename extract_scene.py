@@ -270,9 +270,8 @@ def get_module(file_name):
 def main():
     config = get_configuration()
     module = get_module(config["file"])
-    members = inspect.getmembers(module, is_scene)
     scene_names_to_classes = dict(
-            inspect.getmembers(module, lambda x: is_child_scene(x, module)))
+        inspect.getmembers(module, lambda x: is_child_scene(x, module)))
 
     # config["output_directory"] = os.path.join(
     #     ANIMATIONS_DIR,

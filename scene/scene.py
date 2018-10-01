@@ -85,6 +85,10 @@ class Scene(Container):
         state = self.__dict__.copy()
         if "writing_process" in state:
             del state["writing_process"]
+        if "args_to_rename_file" in state:
+            del state["args_to_rename_file"]
+        if "name" in state:
+            del state["name"]
         return state
 
     def setup(self):

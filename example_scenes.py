@@ -14,31 +14,14 @@ from big_ol_pile_of_manim_imports import *
 class SquareToCircle(Scene):
     def construct(self):
         circle = Circle()
-        square1 = Square()
-        square1.flip(RIGHT)
-        square1.rotate(-3 * TAU / 8)
-        square1.scale(0.5)
-        square1.set_fill(RED, opacity=1)
-
-        square2 = Square()
-        square2.flip(RIGHT)
-        square2.rotate(-3 * TAU / 8)
-        square2.scale(0.5)
-        square2.set_fill(GREEN, opacity=1)
-
+        square = Square()
+        square.flip(RIGHT)
+        square.rotate(-3 * TAU / 8)
         circle.set_fill(PINK, opacity=0.5)
 
-        circle.add(square1)
-        circle.add_to_back(square2)
-        self.play(ShowCreation(circle))
-
-        self.wait(5)
-
-
-class SVGTest(Scene):
-    def construct(self):
-        mail = SVGMobject(file_name="files/svg/mail.svg")
-        self.play(ShowCreation(mail))
+        self.play(ShowCreation(square))
+        self.play(Transform(square, circle))
+        self.play(FadeOut(square))
 
 
 class WarpSquare(Scene):

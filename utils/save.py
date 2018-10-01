@@ -1,47 +1,36 @@
-import dill
-import inspect
-import os
 from constants import SAVE_DIR
+import dill
+import os
+import pyclbr
+import sys
 
-def get_calling_frame():
-    this_file = inspect.currentframe().f_code.co_filename
-    frame = inspect.currentframe()
-    while frame.f_code.co_filename == this_file:
-        frame = frame.f_back
-    return frame
 
-def get_calling_filename():
-    return get_calling_frame().f_code.co_filename
+def get_previous_class_name(scene_class):
+    calling_class_name = scene_class.__class__.__name__
+    calling_class_module = scene_class.__class__.__module__
+    module = pyclbr.readmodule(scene_class.__class__.__module__)
+    classes = sorted(
+        [c for c in list(module.items())
+            if c[1].module == calling_class_module],
+        key=lambda c: c[1].lineno,
+    )
+    classes = list(map(lambda c: c[0], classes))
+    calling_class_index = classes.index(calling_class_name)
+    if calling_class_index == 0:
+        print("There is no previous class from which to load, and no save "
+              "file was specified.", file=sys.stderr)
+        breakpoint(context=9)
+    return classes[calling_class_index - 1]
 
-def get_calling_function_name():
-    return get_calling_frame().f_code.co_name
 
-def get_previous_function_name():
-    calling_scene = get_calling_frame().f_back.f_locals["self"]
-    print(calling_scene)
-    calling_scene_parts = list(filter(
-        lambda x: x[1].__func__.__code__.co_filename == get_calling_filename(),
-        inspect.getmembers(calling_scene, inspect.ismethod),
-    ))
-
-    calling_scene_parts.sort(key=lambda x: x[1].__func__.__code__.co_firstlineno)
-    cur_position = next((i for i, pair in enumerate(calling_scene_parts)
-        if pair[0] == get_calling_function_name()))
-
-    if cur_position > 0:
-        prev_function = calling_scene_parts[cur_position - 1][0]
-    else:
-        prev_function = None
-
-    return prev_function
-
-def save_state(self, filename=None):
+def save_state(scene_class, filename=None):
     if filename is None:
-        filename = get_calling_function_name() + ".mnm"
-    dill.dump(self, open(os.path.join(SAVE_DIR, filename), "wb"))
+        filename = scene_class.__class__.__name__ + ".mnm"
+    dill.dump(scene_class, open(os.path.join(SAVE_DIR, filename), "wb"))
 
-def load_previous_state(filename=None):
+
+def load_previous_state(scene_class, filename=None):
     if filename is None:
-        filename = get_previous_function_name() + ".mnm"
+        filename = get_previous_class_name(scene_class) + ".mnm"
     loaded_state = dill.load(open(os.path.join(SAVE_DIR, filename), "rb"))
-    return loaded_state.__dict__
+    scene_class.__dict__.update(loaded_state.__dict__)

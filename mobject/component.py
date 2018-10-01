@@ -7,7 +7,6 @@ from animation.transform import ReplacementTransform
 from utils.simple_functions import update_without_overwrite
 import copy
 import sys
-import warnings
 
 
 class Component(Mobject):
