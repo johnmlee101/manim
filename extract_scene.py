@@ -40,7 +40,7 @@ SCENE_NOT_FOUND_MESSAGE = """
 """
 CHOOSE_NUMBER_MESSAGE = """
 Choose number corresponding to desired scene/arguments.
-(Use comma separated list for multiple entries)
+(Use comma separated list for multiple entries, or start-end or a range)
 Choice(s): """
 INVALID_NUMBER_MESSAGE = "Fine then, if you don't want to give a valid number I'll just quit"
 
@@ -56,7 +56,7 @@ def get_configuration():
             "file", help="path to file holding the python code for the scene"
         )
         parser.add_argument(
-            "scene_name", help="Name of the Scene class you want to see"
+            "scene_name", nargs="?", help="Name of the Scene class you want to see"
         )
         optional_args = [
             ("-p", "--preview"),
@@ -95,7 +95,7 @@ def get_configuration():
         sys.exit(2)
     config = {
         "file": args.file,
-        "scene_name": args.scene_name,
+        "scene_name": args.scene_name or "",
         "open_video_upon_completion": args.preview,
         "show_file_in_finder": args.show_file_in_finder,
         # By default, write to file
@@ -236,10 +236,17 @@ def prompt_user_for_choice(name_to_obj):
         num_to_name[count] = name
     try:
         user_input = input(CHOOSE_NUMBER_MESSAGE)
-        return [
-            name_to_obj[num_to_name[int(num_str)]]
-            for num_str in user_input.split(",")
-        ]
+        if "-" in user_input:
+            start, end = user_input.split("-")
+            return [
+                name_to_obj[num_to_name[num]]
+                for num in range(int(start), int(end) + 1)
+            ]
+        else:
+            return [
+                name_to_obj[num_to_name[int(num_str)]]
+                for num_str in user_input.split(",")
+            ]
     except:
         print(INVALID_NUMBER_MESSAGE)
         sys.exit()
