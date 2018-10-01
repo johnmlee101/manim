@@ -564,12 +564,15 @@ class Scene(Container):
             return
         self.current_scene_time += len(frames) * self.frame_duration
         if self.write_to_movie:
-            for frame in frames:
-                if self.save_pngs:
+            if self.save_pngs:
+                for frame in frames:
                     self.save_image(
                         "frame" + str(self.frame_num), self.pngs_mode, True)
                     self.frame_num = self.frame_num + 1
-                self.writing_process.stdin.write(frame.tostring())
+                    self.writing_process.stdin.write(frame.tostring())
+            else:
+                for frame in frames:
+                    self.writing_process.stdin.write(frame.tostring())
         if self.save_frames:
             self.saved_frames += list(frames)
 
