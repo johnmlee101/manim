@@ -10,7 +10,7 @@ import os
 import subprocess as sp
 import traceback
 
-from constants import *
+import constants
 
 from scene.scene import Scene
 from utils.sounds import play_error_sound
@@ -75,10 +75,6 @@ def is_child_scene(obj, module):
         return False
     return True
 
-def contained_in(obj, pyclbr_dict):
-    return inspect.isclass(obj) and obj.__name__ in pyclbr_dict.keys()
-
-
 def prompt_user_for_choice(name_to_obj):
     num_to_name = {}
     names = sorted(name_to_obj.keys(), key=lambda k: name_to_obj[k].lineno)
@@ -86,7 +82,7 @@ def prompt_user_for_choice(name_to_obj):
         print("%d: %s" % (count, name))
         num_to_name[count] = name
     try:
-        user_input = input(CHOOSE_NUMBER_MESSAGE)
+        user_input = input(constants.CHOOSE_NUMBER_MESSAGE)
         if "-" in user_input:
             start, end = user_input.split("-")
             return [
@@ -99,20 +95,20 @@ def prompt_user_for_choice(name_to_obj):
                 for num_str in user_input.split(",")
             ]
     except:
-        print(INVALID_NUMBER_MESSAGE)
+        print(constants.INVALID_NUMBER_MESSAGE)
         sys.exit()
 
 
 def get_scene_classes(scene_names_to_classes, config):
     if len(scene_names_to_classes) == 0:
-        print(NO_SCENE_MESSAGE)
+        print(constants.NO_SCENE_MESSAGE)
         return []
     if len(scene_names_to_classes) == 1:
         return list(scene_names_to_classes.values())
     if config["scene_name"] in scene_names_to_classes:
-        return [scene_names_to_classes[config["scene_name"]]]
+        return [config["scene_name"]]
     if config["scene_name"] != "":
-        print(SCENE_NOT_FOUND_MESSAGE)
+        print(constants.SCENE_NOT_FOUND_MESSAGE)
         return []
     if config["write_all"]:
         return list(scene_names_to_classes.values())
@@ -126,8 +122,8 @@ def get_module(file_name):
 
 
 def main():
-    config = get_configuration()
-    init_directories(config)
+    config = constants.get_configuration()
+    constants.init_directories(config)
     script_module = get_module(config["file"])
     pyclbr_module = pyclbr.readmodule(script_module.__name__)
     scene_names_to_pyclbr_classes = {
@@ -142,9 +138,8 @@ def main():
         )
     )
 
-
     # config["output_directory"] = os.path.join(
-    #     ANIMATIONS_DIR,
+    #     constants.ANIMATIONS_DIR,
     #     config["file"].replace(".py", "")
     # )
 
