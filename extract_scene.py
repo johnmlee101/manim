@@ -104,14 +104,14 @@ def get_scene_classes(scene_names_to_classes, config):
         print(constants.NO_SCENE_MESSAGE)
         return []
     if len(scene_names_to_classes) == 1:
-        return list(scene_names_to_classes.values())
+        return list(scene_names_to_classes.keys())
     if config["scene_name"] in scene_names_to_classes:
         return [config["scene_name"]]
     if config["scene_name"] != "":
         print(constants.SCENE_NOT_FOUND_MESSAGE)
         return []
     if config["write_all"]:
-        return list(scene_names_to_classes.values())
+        return list(scene_names_to_classes.keys())
     return prompt_user_for_choice(scene_names_to_classes)
 
 

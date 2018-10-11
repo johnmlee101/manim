@@ -15,6 +15,7 @@ from utils.iterables import make_even
 from utils.iterables import tuplify
 from utils.iterables import stretch_array_to_length
 from utils.simple_functions import clip_in_place
+import warnings
 
 
 class VMobject(Mobject):
@@ -44,6 +45,7 @@ class VMobject(Mobject):
         "propagate_style_to_family": False,
         "pre_function_handle_to_anchor_scale_factor": 0.01,
         "make_smooth_after_applying_functions": False,
+        "scale_handle_to_anchor_distances_after_applying_functions": True,
         "background_image_file": None,
         "shade_in_3d": False,
     }
@@ -427,7 +429,8 @@ class VMobject(Mobject):
         factor = self.pre_function_handle_to_anchor_scale_factor
         self.scale_handle_to_anchor_distances(factor)
         Mobject.apply_function(self, function)
-        self.scale_handle_to_anchor_distances(1. / factor)
+        if self.scale_handle_to_anchor_distances_after_applying_functions:
+            self.scale_handle_to_anchor_distances(1. / factor)
         if self.make_smooth_after_applying_functions:
             self.make_smooth()
         return self

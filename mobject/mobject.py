@@ -145,6 +145,18 @@ class Mobject(Container):
         camera.capture_mobject(self)
         return camera.get_image()
 
+    def get_binary_array(self, camera=None):
+        if camera is None:
+            from camera.camera import Camera
+            camera = Camera()
+        camera.capture_mobject(self)
+
+        camera.get_image().save("lmao.png")
+
+        # why the transpose?
+        arr = np.int16(np.all(camera.pixel_array[:, :, :3] == 0, axis=2)).T
+        return arr
+
     def show(self, camera=None):
         self.get_image(camera=camera).show()
 

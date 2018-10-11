@@ -63,3 +63,16 @@ def update_without_overwrite(d1, d2):
         if key not in d1:
             d1[key] = d2[key]
     return d1
+
+
+def circular_binary_structure(radius):
+    two_d_coordinates = np.indices((2 * radius + 1, 2 * radius + 1)) \
+                          .swapaxes(0, 2) \
+                          .swapaxes(0, 1)
+    two_d_coordinates_origin = two_d_coordinates[radius, radius]
+    circular_structure = np.zeros((2 * radius + 1, 2 * radius + 1))
+    circular_structure[np.where(
+        np.linalg.norm(
+            two_d_coordinates - two_d_coordinates_origin, axis=2) <= radius
+    )] = 1
+    return circular_structure

@@ -5,9 +5,13 @@ from constants import *
 from mobject.types.vectorized_mobject import VMobject
 from mobject.geometry import Rectangle
 from mobject.geometry import Line
+from mobject.functions import ParametricFunction
 from mobject.types.vectorized_mobject import VGroup
 from utils.config_ops import digest_config
 from utils.color import Color
+from utils.paths import alpha_shape
+from utils.simple_functions import circular_binary_structure
+from scipy import ndimage
 
 
 class SurroundingRectangle(Rectangle):
@@ -74,3 +78,67 @@ class Cross(VGroup):
                         )
         self.replace(mobject, stretch=True)
         self.set_stroke(self.stroke_color, self.stroke_width)
+
+
+class SurroundingCurve(ParametricFunction):
+    def __init__(self, mob, iterations=5, radius=10, alpha=100, camera=None):
+        if camera is None:
+            from camera.camera import Camera
+            camera = Camera()
+        arr = mob.get_binary_array()
+        arr = ndimage.binary_dilation(
+            arr,
+            structure=circular_binary_structure(radius),
+            iterations=iterations,
+        )
+        pixel_list = np.column_stack(np.where(arr == 1)).astype("float64")
+
+        concave_hull = list(alpha_shape(pixel_list, alpha=alpha, only_outer=True))
+
+        # sort edges
+        for i, first in enumerate(concave_hull):
+            loop = True
+            for j, second in enumerate(concave_hull[i + 1:]):
+                j += i + 1
+                if first[1] == second[0]:
+                    loop = False
+                    concave_hull[i + 1], concave_hull[j] = \
+                        concave_hull[j], concave_hull[i + 1]
+            if loop and i != len(concave_hull) - 1:
+                warnings.warn(
+                    "the alpha shape in split into different parts. This can "
+                    "be fixed by increasing alpha."
+                )
+                print(i, len(concave_hull))
+                # breakpoint(context=9)
+                pass
+
+        temp = np.zeros((len(concave_hull) + 1, 2))
+        for i, pair in enumerate(concave_hull):
+            temp[i] = pixel_list[pair[0]]
+        temp[-1] = pixel_list[concave_hull[0][0]]
+        pixel_list = temp
+
+        point_list = np.zeros((pixel_list.shape[0], pixel_list.shape[1] + 1))
+        point_list[:, 0] = pixel_list[:, 0] * camera.frame_height / camera.pixel_height
+        point_list[:, 1] = -pixel_list[:, 1] * camera.frame_width / camera.pixel_width
+        # TODO: account for quality
+
+        # want this to be 1
+        mod = len(point_list) % 3
+        if mod == 0:
+            point_list = point_list[:-2]
+        elif mod == 1:
+            pass
+        elif mod == 2:
+            point_list = point_list[:-1]
+
+        ParametricFunction.__init__(
+            self,
+            lambda t, point_list=point_list: point_list[int(t)],
+            t_min=0,
+            t_max=len(point_list) - 1,
+            num_anchor_points=(len(point_list) + 2) // 3,
+            scale_handle_to_anchor_distances_after_applying_functions=False,
+        )
+        self.move_to(mob.get_center())
