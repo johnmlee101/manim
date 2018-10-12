@@ -81,7 +81,7 @@ class Cross(VGroup):
 
 
 class SurroundingCurve(ParametricFunction):
-    def __init__(self, mob, iterations=5, radius=10, alpha=100, camera=None):
+    def __init__(self, mob, iterations=5, radius=10, alpha=50, camera=None):
         if camera is None:
             from camera.camera import Camera
             camera = Camera()
@@ -122,23 +122,13 @@ class SurroundingCurve(ParametricFunction):
         point_list = np.zeros((pixel_list.shape[0], pixel_list.shape[1] + 1))
         point_list[:, 0] = pixel_list[:, 0] * camera.frame_height / camera.pixel_height
         point_list[:, 1] = -pixel_list[:, 1] * camera.frame_width / camera.pixel_width
-        # TODO: account for quality
 
-        # want this to be 1
-        mod = len(point_list) % 3
-        if mod == 0:
-            point_list = point_list[:-2]
-        elif mod == 1:
-            pass
-        elif mod == 2:
-            point_list = point_list[:-1]
-
+        # TODO: figure out optimal num_anchor_points
         ParametricFunction.__init__(
             self,
             lambda t, point_list=point_list: point_list[int(t)],
             t_min=0,
             t_max=len(point_list) - 1,
-            num_anchor_points=(len(point_list) + 2) // 3,
             scale_handle_to_anchor_distances_after_applying_functions=False,
         )
         self.move_to(mob.get_center())
