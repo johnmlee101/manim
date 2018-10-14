@@ -106,6 +106,14 @@ class Graph(Group):
         Node.assert_primitive(point)
         return label in self.nodes[point].labels
 
+    def get_edge_label(self, pair, name):
+        Edge.assert_primitive(pair)
+        return self.edges[pair].get_label(name)
+
+    def edge_has_label(self, pair, label):
+        Edge.assert_primitive(pair)
+        return label in self.edges[pair].labels
+
     def get_edge_weight(self, pair):
         Edge.assert_primitive(pair)
         weight = self.edges[pair].get_label("weight")
