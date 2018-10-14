@@ -51,28 +51,37 @@ class Graph(Group):
             self.edges[edge.key] = edge
             self.add(edge)
 
-    def update_component(self, key, dic):
-        return self.update_components(OrderedDict([(key, dic)]))
+    def update_component(self, key, dic, animate=True):
+        return self.update_components(
+            OrderedDict([(key, dic)]),
+            animate=animate,
+        )
 
-    def update_components(self, dic):
+    def update_components(self, dic, animate=True):
         anims = []
         neighbors_to_update = set()
         for key in dic.keys():
             if key in self.nodes:
                 Node.assert_primitive(key)
-                anims.extend(self.nodes[key].update_attrs(dic.get(key, None)))
+                anims.extend(self.nodes[key].update_attrs(
+                    dic.get(key, None),
+                    animate=animate,
+                ))
                 # update adjacent edges in case radius changes
                 for pair in self.get_adjacent_edges(key, use_direction=False):
                     if pair not in dic and pair not in neighbors_to_update:
                         neighbors_to_update.add(pair)
             elif key in self.edges:
                 Edge.assert_primitive(key)
-                anims.extend(self.edges[key].update_attrs(dic.get(key, None)))
+                anims.extend(self.edges[key].update_attrs(
+                    dic.get(key, None),
+                    animate=animate,
+                ))
             else:
                 print("Unexpected key {}".format(key), file=sys.stderr)
                 breakpoint(context=7)
         for pair in neighbors_to_update:
-            anims.extend(self.edges[pair].update_attrs())
+            anims.extend(self.edges[pair].update_attrs(animate=animate))
         return anims
 
     def set_labels(self, dic):

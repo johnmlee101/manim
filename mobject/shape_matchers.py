@@ -81,7 +81,7 @@ class Cross(VGroup):
 
 
 class SurroundingCurve(ParametricFunction):
-    def __init__(self, mob, iterations=5, radius=10, alpha=50, camera=None):
+    def __init__(self, mob, iterations=5, radius=10, alpha=30, camera=None):
         if camera is None:
             from camera.camera import Camera
             camera = Camera()
