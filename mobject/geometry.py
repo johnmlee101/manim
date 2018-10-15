@@ -706,7 +706,7 @@ class RegularPolygon(Polygon):
 
 class Rectangle(VMobject):
     CONFIG = {
-        "color": BLACK,
+        "color": WHITE,
         "height": 2.0,
         "width": 4.0,
         "mark_paths_closed": True,
