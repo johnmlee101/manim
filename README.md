@@ -53,7 +53,7 @@ The image does not contain a copy of the repo. This is intentional, as it allows
 
 1. [Install Docker](https://www.docker.com/products/overview)
 2. Get the docker image
-  * Pull it (reommended): `docker pull eulertour/manim:latest`, or
+  * Pull it (recommended): `docker pull eulertour/manim:latest`, or
   * Build it: `docker build -t manim .`
 3. Run it!
   * Bind mount a local repo (recommended): `docker run -itv /path/to/your/local/manim/repo:/root/manim eulertour/manim` or
