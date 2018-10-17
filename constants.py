@@ -1,18 +1,247 @@
 import os
 import numpy as np
 import colour
+import argparse
+import sys
 
-if os.getenv("MEDIA_DIR"):
-    MEDIA_DIR = os.getenv("MEDIA_DIR")
-elif os.path.exists("media_dir.txt"):
-    with open("media_dir.txt", 'rU') as media_file:
-        MEDIA_DIR = media_file.readline().strip()
-else:
-    MEDIA_DIR = "media"
+SCRIPT_DIR = ""
+MEDIA_DIR = ""
+ANIMATIONS_DIR = ""
+RASTER_IMAGE_DIR = ""
+SVG_IMAGE_DIR = ""
+STAGED_SCENES_DIR = ""
+FILE_DIR = ""
+TEX_DIR = ""
+SAVE_DIR = ""
+TEX_IMAGE_DIR = ""
+MOBJECT_DIR = ""
+IMAGE_MOBJECT_DIR = ""
+LIB_DIR = ""
+TEX_TEXT_TO_REPLACE = ""
+TEMPLATE_TEX_FILE = ""
+TEMPLATE_TEXT_FILE = ""
+TEMPLATE_CODE_FILE = ""
+TEMPLATE_ALIGNAT_FILE = ""
 
-with open("media_dir.txt", 'w') as media_file:
-    media_file.write(MEDIA_DIR)
-#
+
+def get_configuration():
+    try:
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "file", help="path to file holding the python code for the scene"
+        )
+        parser.add_argument(
+            "scene_name", nargs="?",
+            help="Name of the Scene class you want to see",
+        )
+        optional_args = [
+            ("-p", "--preview"),
+            ("-w", "--write_to_movie"),
+            ("-s", "--show_last_frame"),
+            ("-l", "--low_quality"),
+            ("-m", "--medium_quality"),
+            ("-g", "--save_pngs"),
+            ("-f", "--show_file_in_finder"),
+            ("-t", "--transparent"),
+            ("-q", "--quiet"),
+            ("-a", "--write_all")
+        ]
+        for short_arg, long_arg in optional_args:
+            parser.add_argument(short_arg, long_arg, action="store_true")
+        parser.add_argument("-o", "--output_name")
+        parser.add_argument("-n", "--start_at_animation_number")
+        parser.add_argument("-r", "--resolution")
+        parser.add_argument("-c", "--color")
+        parser.add_argument("-d", "--output_directory")
+        args = parser.parse_args()
+        if args.output_name is not None:
+            output_name_root, output_name_ext = os.path.splitext(
+                args.output_name)
+            expected_ext = '.png' if args.show_last_frame else '.mp4'
+            if output_name_ext not in ['', expected_ext]:
+                print("WARNING: The output will be to (doubly-dotted) %s%s" %
+                      output_name_root % expected_ext)
+                output_name = args.output_name
+            else:
+                # If anyone wants .mp4.mp4 and is surprised to only get .mp4, or such... Well, too bad.
+                output_name = output_name_root
+        else:
+            output_name = args.output_name
+        if args.output_directory is None:
+            output_dir = os.path.dirname(args.file)
+        else:
+            output_dir = args.output_directory
+
+    except argparse.ArgumentError as err:
+        print(str(err))
+        sys.exit(2)
+    config = {
+        "file": args.file,
+        "scene_name": args.scene_name or "",
+        "open_video_upon_completion": args.preview,
+        "show_file_in_finder": args.show_file_in_finder,
+        # By default, write to file
+        "write_to_movie": args.write_to_movie or not args.show_last_frame,
+        "show_last_frame": args.show_last_frame,
+        "save_pngs": args.save_pngs,
+        # If -t is passed in (for transparent), this will be RGBA
+        "saved_image_mode": "RGBA" if args.transparent else "RGB",
+        "movie_file_extension": ".mov" if args.transparent else ".mp4",
+        "quiet": args.quiet or args.write_all,
+        "ignore_waits": args.preview,
+        "write_all": args.write_all,
+        "output_name": output_name,
+        "output_dir": output_dir,
+        "start_at_animation_number": args.start_at_animation_number,
+        "end_at_animation_number": None,
+    }
+
+    # Camera configuration
+    config["camera_config"] = {}
+    if args.low_quality:
+        config["camera_config"].update(LOW_QUALITY_CAMERA_CONFIG)
+        config["frame_duration"] = LOW_QUALITY_FRAME_DURATION
+    elif args.medium_quality:
+        config["camera_config"].update(MEDIUM_QUALITY_CAMERA_CONFIG)
+        config["frame_duration"] = MEDIUM_QUALITY_FRAME_DURATION
+    else:
+        config["camera_config"].update(PRODUCTION_QUALITY_CAMERA_CONFIG)
+        config["frame_duration"] = PRODUCTION_QUALITY_FRAME_DURATION
+
+    # If the resolution was passed in via -r
+    if args.resolution:
+        if "," in args.resolution:
+            height_str, width_str = args.resolution.split(",")
+            height = int(height_str)
+            width = int(width_str)
+        else:
+            height = int(args.resolution)
+            width = int(16 * height / 9)
+        config["camera_config"].update({
+            "pixel_height": height,
+            "pixel_width": width,
+        })
+
+    if args.color:
+        try:
+            config["camera_config"]["background_color"] = colour.Color(args.color)
+        except AttributeError as err:
+            print("Please use a valid color")
+            print(err)
+            sys.exit(2)
+
+    # If rendering a transparent image/move, make sure the
+    # scene has a background opacity of 0
+    if args.transparent:
+        config["camera_config"]["background_opacity"] = 0
+
+    # Arguments related to skipping
+    stan = config["start_at_animation_number"]
+    if stan is not None:
+        if "," in stan:
+            start, end = stan.split(",")
+            config["start_at_animation_number"] = int(start)
+            config["end_at_animation_number"] = int(end)
+        else:
+            config["start_at_animation_number"] = int(stan)
+
+    config["skip_animations"] = any([
+        config["show_last_frame"] and not config["write_to_movie"],
+        config["start_at_animation_number"],
+    ])
+    return config
+
+
+def init_directories(config):
+    global SCRIPT_DIR
+    global MEDIA_DIR
+    global ANIMATIONS_DIR
+    global RASTER_IMAGE_DIR
+    global SVG_IMAGE_DIR
+    global STAGED_SCENES_DIR
+    global FILE_DIR
+    global TEX_DIR
+    global SAVE_DIR
+    global TEX_IMAGE_DIR
+    global MOBJECT_DIR
+    global IMAGE_MOBJECT_DIR
+    global LIB_DIR
+    global TEX_TEXT_TO_REPLACE
+    global TEMPLATE_TEX_FILE
+    global TEMPLATE_TEXT_FILE
+    global TEMPLATE_CODE_FILE
+    global TEMPLATE_ALIGNAT_FILE
+
+    SCRIPT_DIR = config["output_dir"]
+    if os.getenv("MEDIA_DIR"):
+        MEDIA_DIR = os.getenv("MEDIA_DIR")
+    elif os.path.exists("media_dir.txt"):
+        with open("media_dir.txt", 'rU') as media_file:
+            MEDIA_DIR = media_file.readline().strip()
+    else:
+        MEDIA_DIR = os.path.join(SCRIPT_DIR, "media")
+
+    with open("media_dir.txt", 'w') as media_file:
+        media_file.write(MEDIA_DIR)
+    #
+    ANIMATIONS_DIR = os.path.join(MEDIA_DIR, "animations")
+    RASTER_IMAGE_DIR = os.path.join(MEDIA_DIR, "designs", "raster_images")
+    SVG_IMAGE_DIR = os.path.join(MEDIA_DIR, "designs", "svg_images")
+    # TODO, staged scenes should really go into a subdirectory of a given scenes directory
+    STAGED_SCENES_DIR = os.path.join(ANIMATIONS_DIR, "staged_scenes")
+    ###
+    FILE_DIR = os.path.join(SCRIPT_DIR, "files")
+    TEX_DIR = os.path.join(FILE_DIR, "Tex")
+    SAVE_DIR = os.path.join(FILE_DIR, "saved_states")
+    TEX_IMAGE_DIR = TEX_DIR  # TODO, What is this doing?
+    # These two may be deprecated now.
+    MOBJECT_DIR = os.path.join(FILE_DIR, "mobjects")
+    IMAGE_MOBJECT_DIR = os.path.join(MOBJECT_DIR, "image")
+
+    for folder in [FILE_DIR, RASTER_IMAGE_DIR, SVG_IMAGE_DIR, ANIMATIONS_DIR, TEX_DIR,
+                   TEX_IMAGE_DIR, SAVE_DIR, MOBJECT_DIR, IMAGE_MOBJECT_DIR,
+                   STAGED_SCENES_DIR]:
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+    LIB_DIR = os.path.dirname(os.path.realpath(__file__))
+    TEX_TEXT_TO_REPLACE = "YourTextHere"
+    TEMPLATE_TEX_FILE = os.path.join(LIB_DIR, "template.tex")
+    TEMPLATE_TEXT_FILE = os.path.join(LIB_DIR, "text_template.tex")
+    TEMPLATE_CODE_FILE = os.path.join(LIB_DIR, "code_template.tex")
+    TEMPLATE_ALIGNAT_FILE = os.path.join(LIB_DIR, "alignat_template.tex")
+
+
+HELP_MESSAGE = """
+   Usage:
+   python extract_scene.py <module> [<scene name>]
+   -p preview in low quality
+   -s show and save picture of last frame
+   -w write result to file [this is default if nothing else is stated]
+   -o <file_name> write to a different file_name
+   -l use low quality
+   -m use medium quality
+   -a run and save every scene in the script, or all args for the given scene
+   -q don't print progress
+   -f when writing to a movie file, export the frames in png sequence
+   -t use transperency when exporting images
+   -n specify the number of the animation to start from
+   -r specify a resolution
+   -c specify a background color
+"""
+SCENE_NOT_FOUND_MESSAGE = """
+   That scene is not in the script
+"""
+CHOOSE_NUMBER_MESSAGE = """
+Choose number corresponding to desired scene/arguments.
+(Use comma separated list for multiple entries, or start-end or a range)
+Choice(s): """
+INVALID_NUMBER_MESSAGE = "Fine then, if you don't want to give a valid number I'll just quit"
+
+NO_SCENE_MESSAGE = """
+   There are no scenes inside that module
+"""
+
 
 LOW_QUALITY_FRAME_DURATION = 1. / 15
 MEDIUM_QUALITY_FRAME_DURATION = 1. / 30
@@ -99,27 +328,30 @@ SVG_IMAGE_DIR = os.path.join(MEDIA_DIR, "designs", "svg_images")
 # TODO, staged scenes should really go into a subdirectory of a given scenes directory
 STAGED_SCENES_DIR = os.path.join(ANIMATIONS_DIR, "staged_scenes")
 ###
-THIS_DIR = os.getcwd()
-LIB_DIR = os.path.dirname(os.path.realpath(__file__))
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 FILE_DIR = os.path.join(THIS_DIR, "files")
 TEX_DIR = os.path.join(FILE_DIR, "Tex")
-SAVE_DIR = os.path.join(FILE_DIR, "saved_states")
 TEX_IMAGE_DIR = TEX_DIR  # TODO, What is this doing?
-# These two may be deprecated now.
+# These two may be depricated now.
 MOBJECT_DIR = os.path.join(FILE_DIR, "mobjects")
 IMAGE_MOBJECT_DIR = os.path.join(MOBJECT_DIR, "image")
 
 for folder in [FILE_DIR, RASTER_IMAGE_DIR, SVG_IMAGE_DIR, ANIMATIONS_DIR, TEX_DIR,
-               TEX_IMAGE_DIR, SAVE_DIR, MOBJECT_DIR, IMAGE_MOBJECT_DIR,
+               TEX_IMAGE_DIR, MOBJECT_DIR, IMAGE_MOBJECT_DIR,
                STAGED_SCENES_DIR]:
     if not os.path.exists(folder):
         os.makedirs(folder)
 
+TEX_USE_CTEX = False
 TEX_TEXT_TO_REPLACE = "YourTextHere"
-TEMPLATE_TEX_FILE     = os.path.join(LIB_DIR, "template.tex")
-TEMPLATE_TEXT_FILE    = os.path.join(LIB_DIR, "text_template.tex")
-TEMPLATE_CODE_FILE    = os.path.join(LIB_DIR, "code_template.tex")
-TEMPLATE_ALIGNAT_FILE = os.path.join(LIB_DIR, "alignat_template.tex")
+TEMPLATE_TEX_FILE = os.path.join(THIS_DIR, "tex_template.tex" if not TEX_USE_CTEX
+    else "ctex_template.tex")
+with open(TEMPLATE_TEX_FILE, "r") as infile:
+    TEMPLATE_TEXT_FILE_BODY = infile.read()
+    TEMPLATE_TEX_FILE_BODY = TEMPLATE_TEXT_FILE_BODY.replace(
+        TEX_TEXT_TO_REPLACE,
+        "\\begin{align*}" + TEX_TEXT_TO_REPLACE + "\\end{align*}",
+    )
 
 FFMPEG_BIN = "ffmpeg"
 

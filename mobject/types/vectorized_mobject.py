@@ -15,6 +15,7 @@ from utils.iterables import make_even
 from utils.iterables import tuplify
 from utils.iterables import stretch_array_to_length
 from utils.simple_functions import clip_in_place
+import warnings
 
 
 class VMobject(Mobject):
@@ -44,6 +45,7 @@ class VMobject(Mobject):
         "propagate_style_to_family": False,
         "pre_function_handle_to_anchor_scale_factor": 0.01,
         "make_smooth_after_applying_functions": False,
+        "scale_handle_to_anchor_distances_after_applying_functions": True,
         "background_image_file": None,
         "shade_in_3d": False,
     }
@@ -308,9 +310,11 @@ class VMobject(Mobject):
         self.color_using_background_image(vmobject.get_background_image_file())
         return self
 
-    def set_shade_in_3d(self, value=True):
+    def set_shade_in_3d(self, value=True, z_index_as_group=False):
         for submob in self.get_family():
             submob.shade_in_3d = value
+            if z_index_as_group:
+                submob.z_index_group = self
 
     # Drawing
     def start_at(self, point):
@@ -427,7 +431,8 @@ class VMobject(Mobject):
         factor = self.pre_function_handle_to_anchor_scale_factor
         self.scale_handle_to_anchor_distances(factor)
         Mobject.apply_function(self, function)
-        self.scale_handle_to_anchor_distances(1. / factor)
+        if self.scale_handle_to_anchor_distances_after_applying_functions:
+            self.scale_handle_to_anchor_distances(1. / factor)
         if self.make_smooth_after_applying_functions:
             self.make_smooth()
         return self

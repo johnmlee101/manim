@@ -706,7 +706,7 @@ class RegularPolygon(Polygon):
 
 class Rectangle(VMobject):
     CONFIG = {
-        "color": BLACK,
+        "color": WHITE,
         "height": 2.0,
         "width": 4.0,
         "mark_paths_closed": True,
@@ -740,8 +740,8 @@ class Square(Rectangle):
 
 class RoundedRectangle(Rectangle):
     CONFIG = {
-        "corner_radius" : 0.5,
-        "close_new_points" : True
+        "corner_radius": 0.5,
+        "close_new_points": True
     }
 
     def generate_points(self):

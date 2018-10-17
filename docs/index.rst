@@ -18,7 +18,7 @@ make creating precise 2D animations simple and easy.
     getting_started
 
 .. toctree::
-    :caption: Modules:
+    :caption: Module Index:
     :maxdepth: 2
 
     mobject

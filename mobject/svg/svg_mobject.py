@@ -42,8 +42,9 @@ class SVGMobject(VMobject):
         "propagate_style_to_family": True,
     }
 
-    def __init__(self, **kwargs):
-        digest_config(self, kwargs, locals())
+    def __init__(self, file_name=None, **kwargs):
+        digest_config(self, kwargs)
+        self.file_name = self.file_name or file_name
         self.ensure_valid_file()
         VMobject.__init__(self, **kwargs)
         self.move_into_position()
@@ -54,6 +55,7 @@ class SVGMobject(VMobject):
         possible_paths = [
             os.path.join(SVG_IMAGE_DIR, self.file_name),
             os.path.join(SVG_IMAGE_DIR, self.file_name + ".svg"),
+            os.path.join(SVG_IMAGE_DIR, self.file_name + ".xdv"),
             self.file_name,
         ]
         for path in possible_paths:

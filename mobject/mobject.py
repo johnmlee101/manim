@@ -33,7 +33,7 @@ class Mobject(Container):
     Objects within Manim.
     """
     CONFIG = {
-        "color": BLACK,
+        "color": WHITE,
         "name": None,
         "dim": 3,
         "target": None,
@@ -144,6 +144,18 @@ class Mobject(Container):
             camera = Camera()
         camera.capture_mobject(self)
         return camera.get_image()
+
+    def get_binary_array(self, camera=None):
+        if camera is None:
+            from camera.camera import Camera
+            camera = Camera()
+        camera.capture_mobject(self)
+
+        camera.get_image().save("lmao.png")
+
+        # why the transpose?
+        arr = np.int16(np.all(camera.pixel_array[:, :, :3] == 0, axis=2)).T
+        return arr
 
     def show(self, camera=None):
         self.get_image(camera=camera).show()
@@ -831,6 +843,11 @@ class Mobject(Container):
     def get_boundary_point(self, direction):
         all_points = self.get_points_defining_boundary()
         return all_points[np.argmax(np.dot(all_points, direction))]
+
+    def get_z_index_reference_point(self):
+        # TODO, better place to define default z_index_group?
+        z_index_group = getattr(self, "z_index_group", self)
+        return z_index_group.get_center()
 
     def get_top(self):
         return self.get_edge_center(UP)

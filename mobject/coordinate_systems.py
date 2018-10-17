@@ -145,10 +145,7 @@ class ThreeDAxes(Axes):
             )
             axis.add(axis.pieces)
             axis.main_line.set_stroke(width=0, family=False)
-            axis_3d = ThreeDVMobject(axis)
-            self.remove(axis)
-            self.add(axis_3d)
-            setattr(self, attr, axis_3d)
+            axis.set_shade_in_3d(True)
 
     def set_axis_shading(self):
         def make_func(axis):
