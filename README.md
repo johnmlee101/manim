@@ -17,6 +17,16 @@ Manim relies on system libraries you will need to install on your operating syst
 * latex
 * sox
 
+Note for MacOS users, you'll need to install MacTex in place of latex. This can be done with
+```sh
+brew cask install mactex
+```
+Once finished, add `/Library/TeX/Distributions/.DefaultTeX/Contents/Programs/texbin/` or the two required binaries to your local bin directory.
+```sh
+ln -s /Library/TeX/Distributions/.DefaultTeX/Contents/Programs/texbin/latex /usr/local/bin
+ln -s /Library/TeX/Distributions/.DefaultTeX/Contents/Programs/texbin/dvisvgm /usr/local/bin
+```
+
 Then you can install the python dependencies:
 ```sh
 python3 -m pip install -r requirements.txt
